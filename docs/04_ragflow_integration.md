@@ -69,20 +69,37 @@ UI 保存的 `llm_id` 是 `tenant_model.id`（作者环境为 `1a467ebc0df742e59
 - 本仓库的 Neo4j 与 API 已启动，且 RAGFlow 容器能访问 `http://hematology-kg-api:8000/health`
 - 两个栈都在 `ai-network`；RAGFlow 允许访问该主机名（作者环境设置 `ALLOW_ANY_HOST=1`）
 
+网络自查与修复（自动取第一个含 ragflow 的容器）：
+
+```powershell
+docker network inspect ai-network --format "{{range .Containers}}{{.Name}} {{end}}"
+$ragflowContainer = (docker ps --format "{{.Names}}" | Select-String -Pattern "ragflow" | Select-Object -First 1).Line
+docker network connect ai-network $ragflowContainer   # 已连接会报错，可忽略
+docker exec $ragflowContainer curl -s http://hematology-kg-api:8000/health
+```
+
+若返回主机不可达，在 RAGFlow 的 `.env` 中设置 `ALLOW_ANY_HOST=1`，重启 RAGFlow 后重试。
+
 ### 5.1 准备指南文档
 
 ```powershell
 python -m etl.fetch_guidelines
 ```
 
-确认 `data/raw/guidelines/` 下有 10 篇 PDF，且与 `data/raw/manifest.json` 记录一致。指南 PDF 不入 Git；若官方链接失效，需要从交付介质复制。
+确认 `data/raw/guidelines/` 下有 10 个文件：3 个 `.doc`、1 个 `.docx`、6 个 `.pdf`。将 3 个 `.doc` 用 Word 另存为 `.docx`（文件名见 `sources.json` 的 `upload_filename`），最终上传 6 个 PDF + 4 个 DOCX。无 Word 时可用 LibreOffice：
+
+```powershell
+Get-ChildItem data\raw\guidelines\*.doc | ForEach-Object { soffice --headless --convert-to docx --outdir data\raw\guidelines $_.FullName }
+```
+
+清单以 `data/raw/guidelines/sources.json` 为准；指南原文不入 Git，若官方链接失效，需要从交付介质复制。
 
 ### 5.2 创建知识库
 
 1. RAGFlow → 知识库 → 新建，名称 `hematology_guidelines_v1`。
 2. 选择本机可用的 embedding 模型。
-3. 上传 10 篇指南，启动解析。
-4. 等待全部文档解析完成；作者环境解析结果为 384 chunks。块数不要求逐块一致，但 10 篇必须全部成功。
+3. 上传 10 个文件（6 个 PDF + 4 个 DOCX，其中 3 个 DOCX 由 `.doc` 转换），启动解析。
+4. 等待全部文档解析完成；作者环境解析结果为 384 chunks。块数不要求逐块一致，但 10 个文件必须全部成功。
 5. 用“FLT3 AML 治疗”做一次检索测试，确认能返回指南原文。
 
 ### 5.3 导入画布

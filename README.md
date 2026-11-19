@@ -118,15 +118,15 @@ pytest tests/test_etl.py -q
 ## 五、Docker / Neo4j（阶段 3）
 
 ```powershell
-Copy-Item .env.example .env      # 必须在首次启动前改成强密码（≥12 位、不含 $）；启动后再改 .env 不会更新 Neo4j 密码
+Copy-Item .env.example .env      # 首次启动前修改；启动后再改 .env 不会更新 Neo4j 密码
 notepad .env
 docker network create ai-network # 已存在会提示 already exists，可忽略
 docker compose up -d hematology-neo4j
 docker ps --filter name=hematology-neo4j
-# 首次启动初始化需 1–2 分钟；下面命令返回 1 后再执行导入
-docker exec hematology-neo4j cypher-shell -u neo4j -p <密码> "RETURN 1;"
-python -m pip install "neo4j>=5,<7"
 $env:NEO4J_PASSWORD = ((Select-String -Path .env -Pattern '^NEO4J_PASSWORD=').Line -replace '^NEO4J_PASSWORD=','').Trim()
+# 首次启动初始化需 1–2 分钟；下面命令返回 1 后再执行导入
+docker exec hematology-neo4j cypher-shell -u neo4j -p $env:NEO4J_PASSWORD "RETURN 1;"
+python -m pip install "neo4j>=5,<7"
 python -m etl.load_neo4j          # 建约束 -> 导入 -> 核验 -> 写 neo4j_import_report.json
 python -m etl.load_neo4j          # 再执行一次，节点/边计数必须不变（幂等）
 ```
@@ -202,10 +202,10 @@ powershell -ExecutionPolicy Bypass -File scripts\backup_neo4j.ps1
 
 # 恢复：校验 SHA256 -> 停容器 -> 现有 data 改名 data.pre-restore-<时间戳> -> 解包 -> 启动 -> 计数/约束核验
 powershell -ExecutionPolicy Bypass -File scripts\restore_neo4j.ps1 `
-  -Archive backups\neo4j-data-<时间戳>.tar.gz
+  -Archive backups\neo4j-data-YYYYMMDD-HHMMSS.tar.gz
 
 # 确认恢复结果后再删除旧数据目录（脚本加 -RemovePrevious 可自动删除）
-Remove-Item -Recurse -Force neo4j\data.pre-restore-<时间戳>
+Remove-Item -Recurse -Force neo4j\data.pre-restore-YYYYMMDD-HHMMSS
 ```
 
 - 备份/恢复期间 Neo4j 停机，`/health` 会短暂失败；恢复后 API 自动重连。
@@ -220,7 +220,7 @@ Remove-Item -Recurse -Force neo4j\data.pre-restore-<时间戳>
 ```powershell
 git clone https://github.com/pzf0404/hematology.git hematology-kg
 cd hematology-kg
-Copy-Item .env.example .env           # 必须在首次启动前改成强密码（≥12 位、不含 $）
+Copy-Item .env.example .env           # 首次启动前修改；密码仅用字母、数字、_、-，避免 $ 和 #（Compose 会当作变量/注释）
 notepad .env
 docker network create ai-network      # 已存在会提示 already exists，可忽略
 python -m pip install PyYAML "neo4j>=5,<7" pytest httpx -r api\requirements.txt
@@ -240,19 +240,39 @@ python -m etl.load_neo4j
 
 # 3) API（阶段 4）
 docker compose up -d --build
+# 首次构建需数十秒；等待 /health 返回 200（最多 90 秒）
+for ($i = 0; $i -lt 30; $i++) {
+  try { if ((Invoke-WebRequest -UseBasicParsing http://127.0.0.1:18080/health).StatusCode -eq 200) { break } } catch {}
+  Start-Sleep -Seconds 3
+}
 curl.exe http://127.0.0.1:18080/health
+curl.exe "http://127.0.0.1:18080/v1/entity/search?q=AML&limit=5"
+$body = '{"disease_route":"leukemia","query":"FLT3 与 AML 有什么关系？","max_hops":2,"limit":20}'
+[IO.File]::WriteAllText("$PWD\kg_context.json", $body, (New-Object System.Text.UTF8Encoding($false)))
+curl.exe -s -X POST http://127.0.0.1:18080/v1/kg/context -H "Content-Type: application/json" --data-binary "@kg_context.json"
+Remove-Item kg_context.json
+# 若在新终端执行，先重新设置 NEO4J_PASSWORD 再跑测试
+$env:NEO4J_PASSWORD = ((Select-String -Path .env -Pattern '^NEO4J_PASSWORD=').Line -replace '^NEO4J_PASSWORD=','').Trim()
 python -m pytest -q                   # 38 passed
 
 # 4) RAGFlow（阶段 5）：需要本机已有 RAGFlow
-python -m etl.fetch_guidelines        # 下载 10 篇指南到 data/raw/guidelines
-# 在 RAGFlow 中创建知识库并上传上述指南 -> 解析
+python -m etl.fetch_guidelines        # 下载 10 个指南文件到 data/raw/guidelines
+# 3 个 .doc 需先用 Word 另存为 .docx；无 Word 时可用 LibreOffice：
+# Get-ChildItem data\raw\guidelines\*.doc | ForEach-Object { soffice --headless --convert-to docx --outdir data\raw\guidelines $_.FullName }
+# 文件名对照 data/raw/guidelines/sources.json 的 upload_filename
+# 在 RAGFlow 中创建知识库并上传 6 个 PDF + 4 个 DOCX -> 解析
 # 导入 docs/s5/dsl_snapshot.json -> 在 Retrieval 重新选择知识库、在 3 个 Agent 节点重新选择模型
+# RAGFlow 容器需接入 ai-network，并能访问 API（自动取第一个含 ragflow 的容器）
+$ragflowContainer = (docker ps --format "{{.Names}}" | Select-String -Pattern "ragflow" | Select-Object -First 1).Line
+docker network connect ai-network $ragflowContainer   # 已连接会报错，可忽略
+docker exec $ragflowContainer curl -s http://hematology-kg-api:8000/health
+# 若 Invoke 报主机不可达，在 RAGFlow 的 .env 中设置 ALLOW_ANY_HOST=1 并重启 RAGFlow
 # 详细步骤见 docs/04_ragflow_integration.md 第五节
 ```
 
 - `data/raw` 体积大且不入库（见 `.gitignore`）。新机器可执行 `python -m etl.download`，或从交付介质复制 raw 目录与 `manifest.json` 后跳过下载。
 - Monarch 归档 368 MB，直连较慢；复制方式必须校验 SHA256 与 `data/raw/manifest.json` 一致。
-- 指南 PDF 同样不在仓库中，RAGFlow 重建前必须先运行 `python -m etl.fetch_guidelines`。
+- 指南原文同样不在仓库中，RAGFlow 重建前必须先运行 `python -m etl.fetch_guidelines`。共 10 个文件：3 个 `.doc`、1 个 `.docx`、6 个 `.pdf`；3 个 `.doc` 需另存为 `.docx` 后上传，清单见 `data/raw/guidelines/sources.json`。
 - 若端口被占用，先停止旧栈，或临时调整 `docker-compose.yml` 的宿主端口映射。
 
 ### 9.2 交接核对（约 10 分钟）
