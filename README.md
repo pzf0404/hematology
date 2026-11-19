@@ -127,9 +127,12 @@ docker compose up -d --build
 curl.exe http://127.0.0.1:18080/health
 curl.exe "http://127.0.0.1:18080/v1/entity/search?q=AML&limit=5"
 curl.exe "http://127.0.0.1:18080/v1/entity/HGNC:3765/neighbors?depth=1&limit=5"
-curl.exe -X POST http://127.0.0.1:18080/v1/kg/context `
+# PowerShell 5 直传含中文的 -d '{"..."}' 会被去掉引号导致 JSON 解析失败，改用 UTF-8 文件传参
+$body = '{"disease_route":"leukemia","query":"FLT3 与 AML 有什么关系？","max_hops":2,"limit":20}'
+[IO.File]::WriteAllText("$PWD\kg_context.json", $body, (New-Object System.Text.UTF8Encoding($false)))
+curl.exe -s -X POST http://127.0.0.1:18080/v1/kg/context `
   -H "Content-Type: application/json" `
-  -d '{"disease_route":"leukemia","query":"FLT3 与 AML 有什么关系？","max_hops":2,"limit":20}'
+  --data-binary "@kg_context.json"
 $env:NEO4J_PASSWORD = ((Select-String -Path .env -Pattern '^NEO4J_PASSWORD=').Line -replace '^NEO4J_PASSWORD=','').Trim()
 python -m pytest -q
 ```
