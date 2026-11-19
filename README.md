@@ -208,7 +208,7 @@ Remove-Item -Recurse -Force neo4j\data.pre-restore-<时间戳>
 ### 10.1 从零部署（按顺序执行）
 
 ```powershell
-git clone <repo> hematology-kg
+git clone https://github.com/pzf0404/hematology.git hematology-kg
 cd hematology-kg
 Copy-Item .env.example .env           # 设置强密码（≥12 位、不含 $）；不要带 <>
 docker network inspect ai-network     # 不存在则 docker network create ai-network
