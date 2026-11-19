@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-11-18T16:19:30+08:00",
+  "sources": {
+    "monarch": {
+      "version": "2026-11-11",
+      "edges_scanned": 16958940
+    }
+  },
+  "monarch_drop": {
+    "两端节点不在 V1 索引": 3898730
+  },
+  "staged_dropped": {
+    "biolink:model_of|Genotype 非 V1 节点类型": 86
+  },
+  "illegal_type_combo": {
+    "biolink:associated_with_increased_likelihood_of|Variant->Disease": 8006,
+    "biolink:causes|BiologicalProcess->BiologicalProcess": 7,
+    "biolink:causes|Disease->BiologicalProcess": 2,
+    "biolink:causes|Disease->Gene": 10,
+    "biolink:causes|Variant->Disease": 192331,
+    "biolink:has_phenotype|Disease->Disease": 86,
+    "biolink:has_phenotype|Gene->Phenotype": 294904,
+    "biolink:participates_in|BiologicalProcess->ChemicalEntity": 11,
+    "biolink:participates_in|ChemicalEntity->Pathway": 109374,
+    "biolink:subclass_of|BiologicalProcess->BiologicalProcess": 40486,
+    "biolink:subclass_of|ChemicalEntity->ChemicalEntity": 40875,
+    "biolink:subclass_of|Phenotype->Disease": 1,
+    "biolink:subclass_of|Phenotype->Phenotype": 24443
+  },
+  "ot_gene_mapping": {
+    "ensembl 精确命中": 36896,
+    "新建 Ensembl 节点": 126,
+    "symbol 唯一匹配": 98
+  },
+  "dismech": {
+    "pathophysiology 条目": 21,
+    "治疗条目": 20,
+    "治疗药精确匹配 OT": 12,
+    "基因无法解析（无 ontology ID 或不在人类基因索引）": 4
+  },
+  "missing_metadata": {},
+  "nodes_written": 185067,
+  "edges_allowed": 623805,
+  "edges_staged": 320,
+  "raw_edge_records": 718245,
+  "edges_merged_duplicate_records": 94120,
+  "relation_counts": {
+    "AFFECTS|Variant->Gene": 107721,
+    "ASSOCIATED_WITH|Gene->Disease": 47363,
+    "HAS_PHENOTYPE|Disease->Phenotype": 248891,
+    "INVOLVED_IN|Gene->BiologicalProcess": 120904,
+    "PARTICIPATES_IN|Gene->Pathway": 48809,
+    "SUBTYPE_OF|Disease->Disease": 46770,
+    "TARGETS|Drug->Gene": 1820,
+    "TREATS|Drug->Disease": 1527
+  },
+  "staged_counts": {
+    "ASSOCIATED_WITH_INCREASED_LIKELIHOOD_OF": 5,
+    "CAUSES": 315
+  },
+  "illegal_type_combo_total": 710536,
+  "phenotype_candidates": 11586
+}

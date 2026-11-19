@@ -1,0 +1,44 @@
+# 血液病知识图谱 V1 — 图数据库与 API 编排（阶段 3–4）
+# 依据：任务指引 十、Docker 部署设计（docker-compose.yml 建议模板）
+# Neo4j 仅加载阶段 2 的专病子图；FastAPI 只通过固定模板查询，不对公网暴露 Neo4j。
+# 安全要求（任务指引第十章）：Bolt 端口不对公网暴露；密码通过 .env 注入，不提交到 Git。
+
+services:
+  hematology-neo4j:
+    image: neo4j:5-community
+    container_name: hematology-neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}
+    volumes:
+      - ./neo4j/data:/data
+      - ./neo4j/logs:/logs
+      - ./data/processed:/import:ro
+    ports:
+      # 仅绑定回环地址，供本机导入脚本与 Neo4j Browser 使用，不对公网暴露
+      - '127.0.0.1:7687:7687'
+      - '127.0.0.1:7474:7474'
+    networks:
+      - ai-network
+
+  hematology-kg-api:
+    build: ./api
+    container_name: hematology-kg-api
+    restart: unless-stopped
+    environment:
+      NEO4J_URI: bolt://hematology-neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      KG_CONFIG: /app/config/disease_seeds.yaml
+    depends_on:
+      - hematology-neo4j
+    ports:
+      - '127.0.0.1:18080:8000'
+    volumes:
+      - ./config:/app/config:ro
+    networks:
+      - ai-network
+
+networks:
+  ai-network:
+    external: true

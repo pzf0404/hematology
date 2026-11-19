@@ -1,0 +1,31 @@
+# 本地密钥与可重建产物，不入 Git
+.env
+.env.*
+!.env.example
+
+# 原始下载数据（体积大，可按 manifest.json 记录的 URL/SHA256 重新下载）
+# manifest.json 本身是交付物，必须入库
+data/raw/*
+!data/raw/manifest.json
+
+# 标准化中间产物（体积大，可由 etl.normalize 重新生成；报告与暂存边仍入库）
+data/staging/nodes.csv
+data/staging/edges.csv
+
+# Neo4j 数据、日志与本地备份（可由导入脚本重建，不入库）
+neo4j/
+
+# Neo4j 备份产物（由 scripts/backup_neo4j.ps1 生成，按需单独保管）
+backups/
+
+# 本地运行日志
+logs/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# 历史/补充运行存档（正式 answers_r25 保留；带时间戳的备份目录不入库、不入包）
+docs/s5/runs/answers_r25_*/

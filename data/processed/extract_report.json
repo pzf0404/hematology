@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-11-18T16:21:31+08:00",
+  "seeds": [
+    "EFO:0006927",
+    "MONDO:0004948",
+    "MONDO:0004967",
+    "MONDO:0011996",
+    "MONDO:0012883",
+    "MONDO:0015610",
+    "MONDO:0015909",
+    "MONDO:0018874"
+  ],
+  "hop1_edges": 38743,
+  "hop2_edges": 245280,
+  "hop1_genes": 13886,
+  "hop1_drugs": 867,
+  "go_root_edges_dropped": 41,
+  "nodes": 128783,
+  "node_labels": {
+    "BiologicalProcess": 10701,
+    "Disease": 115,
+    "Drug": 867,
+    "Gene": 13886,
+    "Pathway": 2276,
+    "Phenotype": 61,
+    "Variant": 100877
+  },
+  "edges": 284023,
+  "predicates": {
+    "AFFECTS": 100885,
+    "ASSOCIATED_WITH": 35204,
+    "HAS_PHENOTYPE": 80,
+    "INVOLVED_IN": 102790,
+    "PARTICIPATES_IN": 41605,
+    "SUBTYPE_OF": 112,
+    "TARGETS": 1820,
+    "TREATS": 1527
+  }
+}

@@ -1,0 +1,287 @@
+{
+  "generated_at": "2026-11-19T08:57:42+08:00",
+  "files": {
+    "nodes.csv": {
+      "rows": 128783,
+      "sha256": "1F5C6AEE0C7E88CE8A57D5DF0474C5021D52B1A6B5BE7D7B1991E2A5568EA59F"
+    },
+    "edges.csv": {
+      "rows": 284023,
+      "sha256": "77653A250E8E59F97080A8D1529281C5DDD1FF790164F1DD01CF92BAF68B5DAB"
+    }
+  },
+  "node_labels": {
+    "BiologicalProcess": 10701,
+    "Disease": 115,
+    "Drug": 867,
+    "Gene": 13886,
+    "Pathway": 2276,
+    "Phenotype": 61,
+    "Variant": 100877
+  },
+  "predicates": {
+    "AFFECTS": 100885,
+    "ASSOCIATED_WITH": 35204,
+    "HAS_PHENOTYPE": 80,
+    "INVOLVED_IN": 102790,
+    "PARTICIPATES_IN": 41605,
+    "SUBTYPE_OF": 112,
+    "TARGETS": 1820,
+    "TREATS": 1527
+  },
+  "sources": {
+    "DisMech": 34,
+    "DisMech|Open Targets": 20,
+    "Monarch KG": 245431,
+    "Monarch KG|DisMech": 7,
+    "Monarch KG|DisMech|Open Targets": 2,
+    "Monarch KG|Open Targets": 38,
+    "Open Targets": 38491
+  },
+  "staging": {
+    "normalize_report": "data/staging/normalize_report.json",
+    "staged_csv": "data/staging/edges_staged.csv",
+    "edges_staged": 320,
+    "discarded_rows": {
+      "biolink:model_of|Genotype 非 V1 节点类型": 86
+    },
+    "staged_by_predicate": {
+      "ASSOCIATED_WITH_INCREASED_LIKELIHOOD_OF": 5,
+      "CAUSES": 315
+    },
+    "reason_counts": {
+      "白名单无 Variant→Disease 箭头": 320
+    },
+    "illegal_type_combo": {
+      "biolink:associated_with_increased_likelihood_of|Variant->Disease": 8006,
+      "biolink:causes|BiologicalProcess->BiologicalProcess": 7,
+      "biolink:causes|Disease->BiologicalProcess": 2,
+      "biolink:causes|Disease->Gene": 10,
+      "biolink:causes|Variant->Disease": 192331,
+      "biolink:has_phenotype|Disease->Disease": 86,
+      "biolink:has_phenotype|Gene->Phenotype": 294904,
+      "biolink:participates_in|BiologicalProcess->ChemicalEntity": 11,
+      "biolink:participates_in|ChemicalEntity->Pathway": 109374,
+      "biolink:subclass_of|BiologicalProcess->BiologicalProcess": 40486,
+      "biolink:subclass_of|ChemicalEntity->ChemicalEntity": 40875,
+      "biolink:subclass_of|Phenotype->Disease": 1,
+      "biolink:subclass_of|Phenotype->Phenotype": 24443
+    },
+    "illegal_type_combo_total": 710536,
+    "has_illegal_type_section": true,
+    "generated_at": "2026-11-18T16:19:30+08:00",
+    "staged_dropped": {
+      "biolink:model_of|Genotype 非 V1 节点类型": 86
+    },
+    "edges_merged_duplicate_records": 94120
+  },
+  "checks": [
+    {
+      "category": "完整性",
+      "check": "交付文件存在",
+      "status": "PASS",
+      "detail": "nodes.csv=True, edges.csv=True"
+    },
+    {
+      "category": "完整性",
+      "check": "UTF-8 无 BOM",
+      "status": "PASS",
+      "detail": "nodes BOM=False, edges BOM=False"
+    },
+    {
+      "category": "完整性",
+      "check": "nodes 列与任务文档一致",
+      "status": "PASS",
+      "detail": "id|label|name|name_zh|canonical_id|synonyms|source_ids|xrefs|description|source|source_version|retrieved_at"
+    },
+    {
+      "category": "完整性",
+      "check": "edges 列与任务文档一致",
+      "status": "PASS",
+      "detail": "edge_id|subject_id|predicate|object_id|original_predicate|source|source_dataset|source_version|source_record_id|evidence_score|pmid|doi|license|retrieved_at"
+    },
+    {
+      "category": "完整性",
+      "check": "节点 id 唯一",
+      "status": "PASS",
+      "detail": "节点 128783，重复 0"
+    },
+    {
+      "category": "完整性",
+      "check": "节点必填字段非空",
+      "status": "PASS",
+      "detail": "全部非空"
+    },
+    {
+      "category": "实体策略",
+      "check": "节点类型均在 V1 策略内",
+      "status": "PASS",
+      "detail": "分布={'Drug': 867, 'Variant': 100877, 'Disease': 115, 'Gene': 13886, 'BiologicalProcess': 10701, 'Phenotype': 61, 'Pathway': 2276}；越界=无"
+    },
+    {
+      "category": "中文覆盖",
+      "check": "种子疾病中文名齐全",
+      "status": "PASS",
+      "detail": "AML=急性髓系白血病；APL=急性早幼粒细胞白血病；ALL=急性淋巴细胞白血病；CML=慢性髓性白血病；CLL=慢性淋巴细胞白血病；AA=再生障碍性贫血；acquired AA=获得性再生障碍性贫血；SAA=重型再生障碍性贫血"
+    },
+    {
+      "category": "中文覆盖",
+      "check": "表型中文名覆盖",
+      "status": "PASS",
+      "detail": "61/61"
+    },
+    {
+      "category": "完整性",
+      "check": "边三元组唯一",
+      "status": "PASS",
+      "detail": "边 284023，唯一三元组 284023，重复三元组 0"
+    },
+    {
+      "category": "完整性",
+      "check": "edge_id 唯一",
+      "status": "PASS",
+      "detail": "唯一 284023"
+    },
+    {
+      "category": "完整性",
+      "check": "引用完整性",
+      "status": "PASS",
+      "detail": "悬空边 0"
+    },
+    {
+      "category": "关系白名单",
+      "check": "关系方向与白名单一致",
+      "status": "PASS",
+      "detail": "越界 0 条：无"
+    },
+    {
+      "category": "关系白名单",
+      "check": "8 类启用关系是否全部可用",
+      "status": "PASS",
+      "detail": "实际 8 类：{'AFFECTS': 100885, 'ASSOCIATED_WITH': 35204, 'HAS_PHENOTYPE': 80, 'INVOLVED_IN': 102790, 'PARTICIPATES_IN': 41605, 'SUBTYPE_OF': 112, 'TARGETS': 1820, 'TREATS': 1527}"
+    },
+    {
+      "category": "完整性",
+      "check": "边必填字段非空",
+      "status": "PASS",
+      "detail": "全部非空"
+    },
+    {
+      "category": "完整性",
+      "check": "许可字段完整",
+      "status": "PASS",
+      "detail": "缺 license 0 条"
+    },
+    {
+      "category": "完整性",
+      "check": "证据可追溯率",
+      "status": "PASS",
+      "detail": "284023/284023（pmid 或 source_record_id 至少一项）"
+    },
+    {
+      "category": "完整性",
+      "check": "无孤立节点",
+      "status": "PASS",
+      "detail": "孤立节点 0，例如 []"
+    },
+    {
+      "category": "种子覆盖",
+      "check": "种子 AML 已入图且有连接",
+      "status": "PASS",
+      "detail": "MONDO:0018874 度=12103"
+    },
+    {
+      "category": "种子覆盖",
+      "check": "种子 APL 已入图且有连接",
+      "status": "PASS",
+      "detail": "MONDO:0012883 度=2071"
+    },
+    {
+      "category": "种子覆盖",
+      "check": "种子 ALL 已入图且有连接",
+      "status": "PASS",
+      "detail": "MONDO:0004967 度=8086"
+    },
+    {
+      "category": "种子覆盖",
+      "check": "种子 CML 已入图且有连接",
+      "status": "PASS",
+      "detail": "MONDO:0011996 度=4650"
+    },
+    {
+      "category": "种子覆盖",
+      "check": "种子 CLL 已入图且有连接",
+      "status": "PASS",
+      "detail": "MONDO:0004948 度=5509"
+    },
+    {
+      "category": "种子覆盖",
+      "check": "种子 AA 已入图且有连接",
+      "status": "PASS",
+      "detail": "MONDO:0015909 度=4310"
+    },
+    {
+      "category": "种子覆盖",
+      "check": "种子 acquired AA 已入图且有连接",
+      "status": "PASS",
+      "detail": "MONDO:0015610 度=76"
+    },
+    {
+      "category": "种子覆盖",
+      "check": "种子 SAA 已入图且有连接",
+      "status": "PASS",
+      "detail": "EFO:0006927 度=120"
+    },
+    {
+      "category": "异常报告",
+      "check": "异常边已暂存并注明原因",
+      "status": "PASS",
+      "detail": "暂存 320 条（CSV 320 行）；原因={'白名单无 Variant→Disease 箭头': 320}；按谓词={'ASSOCIATED_WITH_INCREASED_LIKELIHOOD_OF': 5, 'CAUSES': 315}"
+    },
+    {
+      "category": "异常报告",
+      "check": "白名单谓词非法类型组合已入异常报告",
+      "status": "PASS",
+      "detail": "710536 条，13 类组合；Top={'biolink:has_phenotype|Gene->Phenotype': 294904, 'biolink:causes|Variant->Disease': 192331, 'biolink:participates_in|ChemicalEntity->Pathway': 109374, 'biolink:subclass_of|ChemicalEntity->ChemicalEntity': 40875, 'biolink:subclass_of|BiologicalProcess->BiologicalProcess': 40486}"
+    }
+  ],
+  "acceptance_spot_checks": [
+    {
+      "question": "某药物的靶点是否与某白血病疾病节点关联？",
+      "status": "PASS",
+      "evidence": "示例：VATALANIB → TARGETS → HGNC:2433 → ASSOCIATED_WITH → CML"
+    },
+    {
+      "question": "环孢素是否与再生障碍性贫血关联？",
+      "status": "PASS",
+      "evidence": "CYCLOSPORINE → TREATS → AA"
+    },
+    {
+      "question": "伊马替尼是否治疗 CML？",
+      "status": "PASS",
+      "evidence": "IMATINIB MESYLATE → TREATS → CML；IMATINIB → TREATS → CML"
+    },
+    {
+      "question": "APL 是否作为独立节点并可关联到上级疾病？",
+      "status": "PASS",
+      "evidence": "APL 的 SUBTYPE_OF 目标：['MONDO:0017893']"
+    },
+    {
+      "question": "AML 是否有表型关联？",
+      "status": "PASS",
+      "evidence": "AML 直接表型 2 个，例如 ['Anemia', 'Acute myeloid leukemia']"
+    },
+    {
+      "question": "基因能否同时关联通路与生物过程？",
+      "status": "PASS",
+      "evidence": "8600 个基因，例如 ['HGNC:100', 'HGNC:10000', 'HGNC:10001']"
+    }
+  ],
+  "limitations": [
+    "疾病中文名覆盖 8/115：非种子疾病（MONDO 父类与直接子类）无官方中文名，字段留空而不臆造",
+    "治疗方案/HSCT：任务文档关系白名单未定义“治疗方案”关系，DisMech 的 20 条治疗条目（含造血干细胞移植）按白名单规则不入正式图，明细见 data/staging/staged_dismech_treatments.csv；因此“造血干细胞移植与再障是什么关系”在 V1 只能回答“无图内关系证据”，需由指南/文献文本证据补充",
+    "种子疾病直接表型合计 80 条，其中 AML 仅 2 个；HPO 对白血病/再障注释稀疏，'临床表现'类问答覆盖有限"
+  ],
+  "passed": 28,
+  "failed": 0
+}

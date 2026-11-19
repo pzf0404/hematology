@@ -1,0 +1,214 @@
+{
+  "generated_at": "2026-11-18T16:15:01+08:00",
+  "script_version": "1.1.0",
+  "sources": [
+    {
+      "name": "DisMech",
+      "type": "mechanism_knowledge_base",
+      "source_url": "https://github.com/monarch-initiative/dismech",
+      "version": "38c23e10b0285becf70a0416fdb267698dfd20fe",
+      "release_date": null,
+      "license": "BSD-3-Clause (repository); AI-curated content",
+      "retrieved_at": "2026-11-09T15:03:55+08:00",
+      "files": [
+        {
+          "path": "data/raw/dismech/38c23e10b0285becf70a0416fdb267698dfd20fe/Acute_Lymphoblastic_Leukemia.yaml",
+          "url": "https://api.github.com/repos/monarch-initiative/dismech/contents/kb/disorders/Acute_Lymphoblastic_Leukemia.yaml?ref=38c23e10b0285becf70a0416fdb267698dfd20fe",
+          "size_bytes": 96463,
+          "sha256": "298FD11973ABD9D80B2A75BA94D5C9A4D9E4E973CB676DF2674ED854CB29174E",
+          "role": "dismech_yaml",
+          "disease_id": "MONDO:0004967",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/dismech/38c23e10b0285becf70a0416fdb267698dfd20fe/Chronic_Myeloid_Leukemia.yaml",
+          "url": "https://api.github.com/repos/monarch-initiative/dismech/contents/kb/disorders/Chronic_Myeloid_Leukemia.yaml?ref=38c23e10b0285becf70a0416fdb267698dfd20fe",
+          "size_bytes": 59422,
+          "sha256": "33B56050E747A748E2C3F815C896422B77880E823F2F5C547A9C46152147B01F",
+          "role": "dismech_yaml",
+          "disease_id": "MONDO:0011996",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/dismech/38c23e10b0285becf70a0416fdb267698dfd20fe/Chronic_Lymphocytic_Leukemia.yaml",
+          "url": "https://api.github.com/repos/monarch-initiative/dismech/contents/kb/disorders/Chronic_Lymphocytic_Leukemia.yaml?ref=38c23e10b0285becf70a0416fdb267698dfd20fe",
+          "size_bytes": 41323,
+          "sha256": "50B51BB8445F246B16B700A7E82DE73F6704CEF355B637B1D2CC8691E3DD6F73",
+          "role": "dismech_yaml",
+          "disease_id": "MONDO:0004948",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/dismech/38c23e10b0285becf70a0416fdb267698dfd20fe/Acute_Myeloid_Leukemia_with_CEBPA_Somatic_Mutations.yaml",
+          "url": "https://api.github.com/repos/monarch-initiative/dismech/contents/kb/disorders/Acute_Myeloid_Leukemia_with_CEBPA_Somatic_Mutations.yaml?ref=38c23e10b0285becf70a0416fdb267698dfd20fe",
+          "size_bytes": 97537,
+          "sha256": "1C122A8DD7E33628484559DEA38004763BE36E236BD09A547C927731FCC23578",
+          "role": "dismech_yaml",
+          "disease_id": "MONDO:0017894",
+          "in_graph": false,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/dismech/38c23e10b0285becf70a0416fdb267698dfd20fe/Inherited_Aplastic_Anemia.yaml",
+          "url": "https://api.github.com/repos/monarch-initiative/dismech/contents/kb/disorders/Inherited_Aplastic_Anemia.yaml?ref=38c23e10b0285becf70a0416fdb267698dfd20fe",
+          "size_bytes": 82003,
+          "sha256": "FD460A0ECC6A45A402D77CCEA34764F88EC73B552EC4B9955DB0A8452CFAC0AA",
+          "role": "dismech_yaml",
+          "disease_id": "MONDO:0001713",
+          "in_graph": false,
+          "script_version": "1.1.0"
+        }
+      ]
+    },
+    {
+      "name": "MONDO",
+      "type": "ontology",
+      "source_url": "https://purl.obolibrary.org/obo/mondo.json",
+      "version": "2026-11-03",
+      "release_date": "2026-11-03",
+      "license": "CC BY 4.0",
+      "retrieved_at": "2026-11-09T15:03:43+08:00",
+      "files": [
+        {
+          "path": "data/raw/mondo/2026-11-03/mondo.json",
+          "url": "https://purl.obolibrary.org/obo/mondo.json",
+          "size_bytes": 108100423,
+          "sha256": "BB1C6B4F7210980126F9997DAAADCC134D70907FBDDBFD49B9A4D5CFFBA9B304",
+          "role": "disease_ontology",
+          "script_version": "1.1.0"
+        }
+      ]
+    },
+    {
+      "name": "Monarch KG",
+      "type": "knowledge_graph",
+      "source_url": "https://data.monarchinitiative.org/monarch-kg/2026-11-11/monarch-kg.tar.gz",
+      "version": "2026-11-11",
+      "upstream_channel": "versioned",
+      "release_date": "2026-11-11",
+      "license": "未声明统一许可；上游逐源许可保留",
+      "retrieved_at": "2026-11-18T16:14:58+08:00",
+      "retrieved_by": "etl/download.py",
+      "files": [
+        {
+          "path": "data/raw/monarch-kg/2026-11-11/monarch-kg.tar.gz",
+          "url": "https://data.monarchinitiative.org/monarch-kg/2026-11-11/monarch-kg.tar.gz",
+          "size_bytes": 368326109,
+          "sha256": "74B9CD49DE6D03E1F7B7BDF62CD3935C70D412D90B30B7792E4437FAA18694C2",
+          "script_version": "1.1.0",
+          "role": "monarch-kg"
+        }
+      ],
+      "notes": {
+        "provided_by_count": 39,
+        "primary_knowledge_source_count": 195,
+        "edge_rows": 16961180,
+        "node_rows": 2006605
+      },
+      "archived_at": "2026-11-09T09:23:01+08:00"
+    },
+    {
+      "name": "Open Targets",
+      "type": "evidence_platform",
+      "source_url": "https://api.platform.opentargets.org/api/v4/graphql",
+      "version": "26.09",
+      "release_date": "2026-09",
+      "license": "平台数据 CC0；上游逐源条款见 docs/02_license_review.md",
+      "retrieved_at": "2026-11-09T15:28:46+08:00",
+      "files": [
+        {
+          "path": "data/raw/open-targets/26.09/AML.json",
+          "url": "https://api.platform.opentargets.org/api/v4/graphql#disease(efoId:MONDO_0018874)",
+          "size_bytes": 3310739,
+          "sha256": "87C7988FB24739B7F0A0FD7547B77E7AC07D7B10AA7FA825A03CE3AF1D0C483F",
+          "role": "open_targets_bundle",
+          "disease_id": "MONDO:0018874",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/open-targets/26.09/APL.json",
+          "url": "https://api.platform.opentargets.org/api/v4/graphql#disease(efoId:MONDO_0012883)",
+          "size_bytes": 490156,
+          "sha256": "583F125D83FA7A197139747C730967D1E4A706165BF208D590F6276923E3E507",
+          "role": "open_targets_bundle",
+          "disease_id": "MONDO:0012883",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/open-targets/26.09/ALL.json",
+          "url": "https://api.platform.opentargets.org/api/v4/graphql#disease(efoId:MONDO_0004967)",
+          "size_bytes": 1939518,
+          "sha256": "7DA9157D5ED22A53FA3695030F2CD251D390025CC61D62CF1F85513D7176211E",
+          "role": "open_targets_bundle",
+          "disease_id": "MONDO:0004967",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/open-targets/26.09/CML.json",
+          "url": "https://api.platform.opentargets.org/api/v4/graphql#disease(efoId:MONDO_0011996)",
+          "size_bytes": 1113892,
+          "sha256": "7964973E98C3D9149F4123B6FB474A5E9AE749D88DB975C75806313EEA6A14EE",
+          "role": "open_targets_bundle",
+          "disease_id": "MONDO:0011996",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/open-targets/26.09/CLL.json",
+          "url": "https://api.platform.opentargets.org/api/v4/graphql#disease(efoId:MONDO_0004948)",
+          "size_bytes": 1341070,
+          "sha256": "73812BB398279043FDB9BAED9FA27520E7736421402443D90E1266A70B9B5C2D",
+          "role": "open_targets_bundle",
+          "disease_id": "MONDO:0004948",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/open-targets/26.09/AA.json",
+          "url": "https://api.platform.opentargets.org/api/v4/graphql#disease(efoId:MONDO_0015909)",
+          "size_bytes": 1052177,
+          "sha256": "CD9D4DFEA1C502D01106B66C1E250C57E1BEA0B6656B2C659B9627AED91CDC89",
+          "role": "open_targets_bundle",
+          "disease_id": "MONDO:0015909",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/open-targets/26.09/acquired_AA.json",
+          "url": "https://api.platform.opentargets.org/api/v4/graphql#disease(efoId:EFO_0006926)",
+          "size_bytes": 16881,
+          "sha256": "4E06AD78AFEE26B5ABF1A93EDB3694B42BA47577473DFB75199863035AC573F1",
+          "role": "open_targets_bundle",
+          "disease_id": "MONDO:0015610",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/open-targets/26.09/SAA.json",
+          "url": "https://api.platform.opentargets.org/api/v4/graphql#disease(efoId:EFO_0006927)",
+          "size_bytes": 26990,
+          "sha256": "19EDA978E322805CD947C51145B0BAF32325EB3D48BD198387CA2DF8A606EC28",
+          "role": "open_targets_bundle",
+          "disease_id": "EFO:0006927",
+          "in_graph": true,
+          "script_version": "1.1.0"
+        },
+        {
+          "path": "data/raw/open-targets/26.09/drug_mechanisms.json",
+          "url": "https://api.platform.opentargets.org/api/v4/graphql#drug.mechanismsOfAction",
+          "size_bytes": 295002,
+          "sha256": "8DC1DC3666C7D87DC0C477853C0CEC38760A0E6F35DC7B7B1C47616EADD913EB",
+          "role": "drug_mechanisms",
+          "drug_count": 867,
+          "script_version": "1.1.0"
+        }
+      ]
+    }
+  ]
+}

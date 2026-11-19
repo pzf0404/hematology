@@ -1,0 +1,239 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-11-11",
+  "source": "《血液病知识图谱_V1任务指引_Docker部署与RAGFlow接入》第十八章：至少 25 条固定问题，并写明期望命中实体/关系/来源",
+  "target": "RAGFlow 画布 hematology_kg_rag_v1（agent_id e75a102daebc43d3b327e0c64b3b0de4）",
+  "judge_rules": {
+    "route": "分诊 Agent 输出必须等于 route",
+    "paths": "Invoke result.paths 长度 > 0，且证据含 SUBTYPE_OF",
+    "sources": "Retrieval chunks 的来源文档至少命中 expected_sources 之一",
+    "answer": "最终回答长度 > 300 字符，且至少命中 expected_keywords 中的一个"
+  },
+  "cases": [
+    {
+      "id": "R01",
+      "route": "AML",
+      "question": "AML 伴 FLT3 突变如何治疗？",
+      "expected_entities": ["MONDO:0018874 acute myeloid leukemia / 急性髓系白血病"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["ELN_2022_AML_recommendations.pdf", "NHC_成人急性髓系白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["FLT3", "midostaurin", "米哚妥林", "吉瑞替尼"]
+    },
+    {
+      "id": "R02",
+      "route": "AML",
+      "question": "老年 AML 不适合强化疗时如何选择治疗方案？",
+      "expected_entities": ["MONDO:0018874"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["ELN_2022_AML_recommendations.pdf", "NHC_成人急性髓系白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["低强度", "阿扎胞苷", "维奈克拉", "venetoclax"]
+    },
+    {
+      "id": "R03",
+      "route": "AML",
+      "question": "AML 达到完全缓解后哪些患者需要异基因造血干细胞移植？",
+      "expected_entities": ["MONDO:0018874"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["ELN_2022_AML_recommendations.pdf", "NHC_成人急性髓系白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["移植", "HSCT"]
+    },
+    {
+      "id": "R04",
+      "route": "AML",
+      "question": "AML 的预后危险分层依据哪些细胞遗传学和分子学标志？",
+      "expected_entities": ["MONDO:0018874"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["ELN_2022_AML_recommendations.pdf"],
+      "expected_keywords": ["危险分层", "细胞遗传学", "NPM1", "FLT3-ITD"]
+    },
+    {
+      "id": "R05",
+      "route": "AML",
+      "question": "成人急性髓系白血病的标准诱导化疗方案是什么？",
+      "expected_entities": ["MONDO:0018874"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["ELN_2022_AML_recommendations.pdf", "NHC_成人急性髓系白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["7+3", "阿糖胞苷", "柔红霉素", "蒽环"]
+    },
+    {
+      "id": "R06",
+      "route": "APL",
+      "question": "APL 的诱导治疗方案如何选择？",
+      "expected_entities": ["MONDO:0012883 acute promyelocytic leukemia / 急性早幼粒细胞白血病"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_儿童急性早幼粒细胞白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["ATRA", "全反式维甲酸", "砷"]
+    },
+    {
+      "id": "R07",
+      "route": "APL",
+      "question": "APL 治疗中分化综合征如何识别和处理？",
+      "expected_entities": ["MONDO:0012883"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_儿童急性早幼粒细胞白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["分化综合征", "地塞米松"]
+    },
+    {
+      "id": "R08",
+      "route": "APL",
+      "question": "APL 治疗中三氧化二砷的适应证和用法是什么？",
+      "expected_entities": ["MONDO:0012883"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_儿童急性早幼粒细胞白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["砷", "ATO", "三氧化二砷"]
+    },
+    {
+      "id": "R09",
+      "route": "APL",
+      "question": "APL 达到完全缓解后如何巩固和维持治疗？",
+      "expected_entities": ["MONDO:0012883"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_儿童急性早幼粒细胞白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["巩固", "维持"]
+    },
+    {
+      "id": "R10",
+      "route": "ALL",
+      "question": "成人费城染色体阳性 ALL 如何选择 TKI 治疗？",
+      "expected_entities": ["MONDO:0004967 acute lymphoblastic leukemia / 急性淋巴细胞白血病"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_成人急性淋巴细胞白血病诊疗规范_2018.docx", "NHC_儿童急性淋巴细胞白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["TKI", "伊马替尼", "达沙替尼"]
+    },
+    {
+      "id": "R11",
+      "route": "ALL",
+      "question": "成人 ALL 的诱导化疗方案由哪些药物组成？",
+      "expected_entities": ["MONDO:0004967"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_成人急性淋巴细胞白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["诱导", "长春新碱", "泼尼松", "环磷酰胺"]
+    },
+    {
+      "id": "R12",
+      "route": "ALL",
+      "question": "ALL 的中枢神经系统白血病预防怎么做？",
+      "expected_entities": ["MONDO:0004967"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_成人急性淋巴细胞白血病诊疗规范_2018.docx", "NHC_儿童急性淋巴细胞白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["中枢神经系统", "鞘内", "腰穿"]
+    },
+    {
+      "id": "R13",
+      "route": "ALL",
+      "question": "儿童 ALL 的危险分层依据是什么？",
+      "expected_entities": ["MONDO:0004967"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_儿童急性淋巴细胞白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["危险分层", "微小残留", "MRD", "年龄"]
+    },
+    {
+      "id": "R14",
+      "route": "ALL",
+      "question": "复发难治性 ALL 有哪些治疗选择？",
+      "expected_entities": ["MONDO:0004967"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_成人急性淋巴细胞白血病诊疗规范_2018.docx", "NHC_儿童急性淋巴细胞白血病诊疗规范_2018.docx"],
+      "expected_keywords": ["复发", "难治", "移植", "贝林妥"]
+    },
+    {
+      "id": "R15",
+      "route": "CML",
+      "question": "CML 慢性髓性白血病一线 TKI 如何选择？",
+      "expected_entities": ["MONDO:0011996 chronic myeloid leukemia / 慢性髓性白血病"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["ELN_2025_CML_recommendations.pdf", "NHC_慢性髓性白血病诊疗指南_2022.pdf"],
+      "expected_keywords": ["TKI", "伊马替尼", "二代"]
+    },
+    {
+      "id": "R16",
+      "route": "CML",
+      "question": "CML 患者出现 TKI 耐药应如何处理？",
+      "expected_entities": ["MONDO:0011996"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["ELN_2025_CML_recommendations.pdf", "NHC_慢性髓性白血病诊疗指南_2022.pdf"],
+      "expected_keywords": ["耐药", "突变", "T315I"]
+    },
+    {
+      "id": "R17",
+      "route": "CML",
+      "question": "CML 达到深度分子学反应后能否停用 TKI？",
+      "expected_entities": ["MONDO:0011996"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["ELN_2025_CML_recommendations.pdf", "NHC_慢性髓性白血病诊疗指南_2022.pdf"],
+      "expected_keywords": ["停药", "无治疗缓解", "TFR", "MR4"]
+    },
+    {
+      "id": "R18",
+      "route": "CML",
+      "question": "CML 加速期和急变期的治疗策略是什么？",
+      "expected_entities": ["MONDO:0011996"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["ELN_2025_CML_recommendations.pdf", "NHC_慢性髓性白血病诊疗指南_2022.pdf"],
+      "expected_keywords": ["加速期", "急变", "移植"]
+    },
+    {
+      "id": "R19",
+      "route": "CLL",
+      "question": "CLL 慢性淋巴细胞白血病一线治疗如何选择？",
+      "expected_entities": ["MONDO:0004948 B-cell chronic lymphocytic leukemia / 慢性淋巴细胞白血病"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_慢性淋巴细胞白血病-小淋巴细胞淋巴瘤诊疗指南_2022.pdf"],
+      "expected_keywords": ["BTK", "伊布替尼", "免疫化疗", "FCR"]
+    },
+    {
+      "id": "R20",
+      "route": "CLL",
+      "question": "CLL 伴 del(17p) 或 TP53 异常如何治疗？",
+      "expected_entities": ["MONDO:0004948"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_慢性淋巴细胞白血病-小淋巴细胞淋巴瘤诊疗指南_2022.pdf"],
+      "expected_keywords": ["TP53", "17p", "BTK"]
+    },
+    {
+      "id": "R21",
+      "route": "CLL",
+      "question": "老年或有合并症的 CLL 患者如何选择治疗方案？",
+      "expected_entities": ["MONDO:0004948"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["NHC_慢性淋巴细胞白血病-小淋巴细胞淋巴瘤诊疗指南_2022.pdf"],
+      "expected_keywords": ["老年", "合并症", "虚弱", "BTK"]
+    },
+    {
+      "id": "R22",
+      "route": "AA",
+      "question": "重型再生障碍性贫血的免疫抑制治疗指征是什么？",
+      "expected_entities": ["MONDO:0015909 aplastic anemia / 再生障碍性贫血"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["CMA_再生障碍性贫血诊断与治疗中国指南_2022.pdf", "NHC_儿童再生障碍性贫血诊疗规范_2019.pdf"],
+      "expected_keywords": ["ATG", "环孢素", "免疫抑制"]
+    },
+    {
+      "id": "R23",
+      "route": "AA",
+      "question": "再生障碍性贫血患者什么情况下选择造血干细胞移植而不是免疫抑制治疗？",
+      "expected_entities": ["MONDO:0015909"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["CMA_再生障碍性贫血诊断与治疗中国指南_2022.pdf", "NHC_儿童再生障碍性贫血诊疗规范_2019.pdf"],
+      "expected_keywords": ["移植", "同胞", "HLA"]
+    },
+    {
+      "id": "R24",
+      "route": "AA",
+      "question": "非重型再生障碍性贫血如何治疗？",
+      "expected_entities": ["MONDO:0015909"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["CMA_再生障碍性贫血诊断与治疗中国指南_2022.pdf"],
+      "expected_keywords": ["非重型", "环孢素", "雄激素", "观察"]
+    },
+    {
+      "id": "R25",
+      "route": "AA",
+      "question": "再生障碍性贫血的支持治疗包括哪些措施？",
+      "expected_entities": ["MONDO:0015909"],
+      "expected_relations": ["SUBTYPE_OF"],
+      "expected_sources": ["CMA_再生障碍性贫血诊断与治疗中国指南_2022.pdf", "NHC_儿童再生障碍性贫血诊疗规范_2019.pdf"],
+      "expected_keywords": ["输血", "抗感染", "支持治疗"]
+    }
+  ]
+}

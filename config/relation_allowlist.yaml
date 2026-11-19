@@ -1,0 +1,291 @@
+# 血液病知识图谱 V1 — 关系白名单
+# 依据：任务指引第六节「建议的关系白名单」
+# 全部边量、类型组合、ID 前缀均对已下载原始数据实测，未手工编造计数。
+#
+# 三条铁律：
+# 1. 未列出的关系一律不进 data/processed/edges.csv，只能进 staging 并写明原因；
+# 2. 每条正式边必须保留 original_predicate，禁止丢失上游谓词语义；
+# 3. 无法解析到表内节点类型的边直接丢弃，不做“猜测式”映射。
+
+version: "1.0"
+verified_at: "2026-11-09"
+measured_against:
+  monarch_kg: "data/raw/monarch-kg/2026-11-11/monarch-kg.tar.gz"
+  monarch_nodes_rows: 2006605
+  monarch_edges_rows: 16961180
+  open_targets: "data/raw/open-targets/26.09"
+  dismech_commit: "38c23e10b0285becf70a0416fdb267698dfd20fe"
+
+# ---------------------------------------------------------------- 实体 ID 政策
+entity_policy:
+  Disease:
+    primary_id_prefix: ["MONDO", "EFO"]
+    exclude_prefix: ["MPATH"]
+    exclude_reason: "MPATH 为病理过程本体，不是疾病实体"
+    note: "EFO 仅用于 MONDO 未提供独立实体的重型再障 SAA（EFO:0006927，Open Targets 26.09 实测）；其余疾病仍以 MONDO 为主标识"
+  Gene:
+    primary_id_prefix: ["HGNC"]
+    fallback_id_prefix: ["ENSG"]
+    fallback_reason: "Open Targets 靶点中 86 个 ncRNA 类基因（Y_RNA/SNORA/SNORD 等）无 HGNC 唯一 symbol 匹配，保留原始 Ensembl ID（ENSG000...），不臆造 HGNC"
+    taxon: "NCBITaxon:9606"
+    measured: "Monarch 人类 Gene 节点 45,045 全部为 HGNC；V1 正式图 13,886 个 Gene 中 86 个为上述 Ensembl 兜底节点"
+    exclude_reason: "非人类基因不入 V1 正式图"
+  Phenotype:
+    primary_id_prefix: ["HP"]
+    measured: "HP 节点 20,482；UPHENO/ZP/XPO/MP 等非人类表型本体排除"
+  Pathway:
+    primary_id_prefix: ["Reactome"]
+    measured: "Pathway 节点 22,932，全部为 Reactome"
+  BiologicalProcess:
+    primary_id_prefix: ["GO"]
+    measured: "BiologicalProcess 节点 30,885，全部为 GO"
+  Variant:
+    primary_id_prefix: ["CLINVAR"]
+    measured: "CLINVAR 变异节点 104,643，其余为 MGI/ZFIN 等非人类"
+  Drug:
+    primary_id_prefix: ["CHEMBL"]
+    source: "Open Targets drug candidates / mechanismsOfAction"
+    exclude_reason: "Monarch 的药物为 CHEBI 化学实体，V1 无稳定 CHEBI→ChEMBL 映射，进 staging"
+  Protein:
+    enabled: false
+    reason: "实测不存在 Protein→Pathway 边（participates_in 中 Protein 主体为 0），V1 不建 Protein 节点"
+  excluded_categories:
+    - "biolink:Case（患者/病例级记录，文档禁止患者数据入图）"
+    - "biolink:Genotype（非 V1 节点类型）"
+    - "biolink:AnatomicalEntity（非 V1 节点类型）"
+    - "biolink:ClinicalMeasurement（非 V1 节点类型）"
+    - "biolink:Cell（CellType 无白名单关系，入图会成为孤立节点）"
+
+# ---------------------------------------------------------------- 关系白名单
+relations:
+  - key: "disease_has_phenotype"
+    canonical: "Disease → HAS_PHENOTYPE → Phenotype"
+    predicate: "HAS_PHENOTYPE"
+    subject_type: "Disease"
+    object_type: "Phenotype"
+    required: true
+    sources:
+      - name: "Monarch KG"
+        original_predicate: "biolink:has_phenotype"
+        filters:
+          subject_category: "biolink:Disease"
+          object_category: "biolink:PhenotypicFeature"
+          object_id_prefix: "HP"
+        measured_edges: 268741
+        measured_detail: "hpoa_disease_to_phenotype_edges 267,620 + phenio_edges 1,121"
+        note: "同一谓词下另有 Gene 837,775 / Genotype 591,033 / Variant 324,172 / Case 206,104 条，全部不属于本箭头，必须过滤掉"
+      - name: "DisMech"
+        original_predicate: "dismech:phenotypes"
+        json_path: "phenotypes[].phenotype_term.term.id"
+        id_prefix: "HP"
+        in_graph_files_only: true
+        measured_edges: 25
+
+  - key: "gene_associated_with_disease"
+    canonical: "Gene → ASSOCIATED_WITH → Disease"
+    predicate: "ASSOCIATED_WITH"
+    subject_type: "Gene"
+    object_type: "Disease"
+    required: true
+    sources:
+      - name: "Monarch KG"
+        original_predicate: "biolink:gene_associated_with_condition"
+        measured_edges: 8180
+      - name: "Monarch KG"
+        original_predicate: "biolink:causes"
+        filters:
+          subject_category: "biolink:Gene"
+        measured_edges: 7148
+        note: "原谓词强于 ASSOCIATED_WITH，强度由 original_predicate 保留；不做反向推断"
+      - name: "Monarch KG"
+        original_predicate: "biolink:associated_with_increased_likelihood_of"
+        filters:
+          subject_category: "biolink:Gene"
+        measured_edges: 35
+      - name: "DisMech"
+        original_predicate: "dismech:genetic"
+        id_normalization: "hgnc:NNN → HGNC:NNN（实测 DisMech 为小写前缀）"
+        in_graph_files_only: true
+        measured_edges: 10
+      - name: "Open Targets"
+        original_predicate: "open_targets:associatedTargets"
+        id_normalization: "Ensembl ENSG → Monarch 人类基因 HGNC；ENSG 未命中时按 approvedSymbol 唯一匹配；仍未命中时以原始 Ensembl ID（ENSG...）建节点"
+        evidence_field: "score"
+        in_graph_bundles_only: true
+        measured_edges: 37120
+
+  - key: "variant_affects_gene"
+    canonical: "Variant → AFFECTS → Gene"
+    predicate: "AFFECTS"
+    subject_type: "Variant"
+    object_type: "Gene"
+    required: true
+    sources:
+      - name: "Monarch KG"
+        original_predicate: "biolink:is_sequence_variant_of"
+        filters:
+          subject_category: "biolink:SequenceVariant"
+          object_category: "biolink:Gene"
+          subject_id_prefix: "CLINVAR"
+          object_human_only: true
+        measured_edges: 110335
+        measured_detail: "主体为 CLINVAR 且对象为人类 HGNC 基因的边共 110,335 条（CLINVAR 主体边全部命中人类基因）"
+    mapping_note: "实测 biolink:affects 在 Monarch 中是表型层关系（PhenotypicFeature→AnatomicalEntity/BiologicalProcess/Cell，86,027 条），不是 Variant→Gene；Variant→Gene 的唯一可用原始谓词是 is_sequence_variant_of，映射为 AFFECTS 并原样保留 original_predicate"
+
+  - key: "drug_treats_disease"
+    canonical: "Drug → TREATS → Disease"
+    predicate: "TREATS"
+    subject_type: "Drug"
+    object_type: "Disease"
+    required: true
+    sources:
+      - name: "Open Targets"
+        original_predicate: "open_targets:drugAndClinicalCandidates"
+        id_prefix: "CHEMBL"
+        evidence_field: "maxClinicalStage"
+        in_graph_bundles_only: true
+        measured_edges: 1527
+      - name: "DisMech"
+        original_predicate: "dismech:treatments"
+        rule: "治疗药名与 OT 药物名精确匹配才升为正式边"
+        measured_edges: 18
+    staged_sources:
+      - name: "Monarch KG"
+        original_predicate: "biolink:applied_to_treat"
+        measured_edges: 56
+        staging_reason: "主体为 CHEBI 化学实体，V1 无稳定 CHEBI→ChEMBL 映射"
+      - name: "DisMech"
+        original_predicate: "dismech:treatments"
+        staging_reason: "未匹配到 OT ChEMBL 药物的治疗条目（含 HSCT 等非药物干预）留在 staged_dismech_treatments.csv"
+
+  - key: "drug_targets_gene"
+    canonical: "Drug → TARGETS → Gene"
+    predicate: "TARGETS"
+    subject_type: "Drug"
+    object_type: "Gene"
+    required: true
+    sources:
+      - name: "Open Targets"
+        original_predicate: "open_targets:mechanismsOfAction"
+        json_path: "drug_mechanisms.json → drugs[CHEMBL].mechanismsOfAction.rows[].targets[]"
+        id_normalization: "靶点 Ensembl ENSG → Monarch 人类基因 HGNC；ENSG 未命中时按 approvedSymbol 唯一匹配；仍未命中时以原始 Ensembl ID（ENSG...）作为节点主标识"
+        evidence_field: "mechanismOfAction / actionType / targetName"
+        measured_edges: 1828
+        measured_detail: "机制行 828 条，其中带靶点 799 条；去重靶点 626 个（625 精确命中 ENSEMBL xref）"
+
+  - key: "gene_participates_in_pathway"
+    canonical: "Gene/Protein → PARTICIPATES_IN → Pathway"
+    predicate: "PARTICIPATES_IN"
+    subject_type: ["Gene"]
+    object_type: "Pathway"
+    required: true
+    sources:
+      - name: "Monarch KG"
+        original_predicate: "biolink:participates_in"
+        filters:
+          subject_human_only: true
+        measured_edges: 52840
+        measured_detail: "reactome_gene_to_pathway_edges 52,840（含非人类基因为 245,658）"
+    note: "Protein 主体实测为 0 条；ChemicalEntity→Pathway 109,290 条不属于本箭头"
+
+  - key: "gene_involved_in_biological_process"
+    canonical: "Gene → INVOLVED_IN → BiologicalProcess"
+    predicate: "INVOLVED_IN"
+    subject_type: "Gene"
+    object_type: "BiologicalProcess"
+    required: true
+    sources:
+      - name: "Monarch KG"
+        original_predicate: "biolink:actively_involved_in"
+        filters:
+          subject_human_only: true
+        measured_edges: 180462
+        measured_detail: "go_annotation_edges 180,462（含非人类基因为 1,072,646）"
+      - name: "DisMech"
+        original_predicate: "dismech:pathophysiology"
+        json_path: "pathophysiology[].genes[] × pathophysiology[].biological_processes[]"
+        measured_edges: 16
+
+  - key: "disease_subtype_of_disease"
+    canonical: "Disease → SUBTYPE_OF → Disease"
+    predicate: "SUBTYPE_OF"
+    subject_type: "Disease"
+    object_type: "Disease"
+    required: true
+    sources:
+      - name: "Monarch KG"
+        original_predicate: "biolink:subclass_of"
+        measured_edges: 46732
+        measured_detail: "Disease→Disease 的 subclass_of 共 46,943 条；按 entity_policy 排除 MPATH 后两端均为 MONDO 的为 46,732 条（差额 211 条涉及 MPATH）"
+        note: "实测 Monarch subclass_of 中 644,648 条上游 original_predicate=rdfs:subClassOf，另有 24,310 条上游字段为空；谓词本身语义即 subClassOf，两者均保留"
+    staged_sources:
+      - name: "DisMech"
+        original_predicate: "dismech:has_subtypes"
+        staging_reason: "实测 has_subtypes 只有名称（如 B-ALL、IGHV Mutated CLL），无 ontology ID，无法生成可追溯的 SUBTYPE_OF 边"
+
+  - key: "disease_related_to_disease"
+    canonical: "Disease → RELATED_TO → Disease"
+    predicate: "RELATED_TO"
+    subject_type: "Disease"
+    object_type: "Disease"
+    required: false
+    enabled: false
+    reason: "文档允许但仅限有清晰来源与语义；Monarch 中 biolink:related_to 达 972,997 条且语义混杂，无法逐条证明清晰语义，V1 关闭"
+
+# ---------------------------------------------------------------- staging（不进正式图）
+staging_rules:
+  output: "data/staging/"
+  keep_original_fields: true
+  items:
+    - predicate: "biolink:causes"
+      types: "SequenceVariant → Disease"
+      measured_edges: 186686
+      reason: "白名单无 Variant→Disease 箭头"
+    - predicate: "biolink:associated_with_increased_likelihood_of"
+      types: "SequenceVariant → Disease"
+      measured_edges: 8421
+      reason: "同上"
+    - predicate: "biolink:genetically_associated_with"
+      types: "SequenceVariant → Disease"
+      measured_edges: 3990
+      reason: "同上"
+    - predicate: "biolink:has_phenotype"
+      types: "Gene / SequenceVariant / Genotype / Case → PhenotypicFeature"
+      measured_edges: 1959199
+      reason: "白名单只允许 Disease→Phenotype；Genotype/Case 还违反实体政策（= 2,227,940 总数 − 268,741 Disease→Phenotype）"
+    - predicate: "biolink:model_of"
+      types: "Genotype → Disease"
+      measured_edges: 10322
+      reason: "Genotype 非 V1 节点类型，属动物模型证据"
+    - predicate: "biolink:has_disease / biolink:has_gene"
+      types: "Case → Disease / Gene"
+      measured_edges: 19126
+      reason: "Case 为病例级记录，文档禁止患者级数据入图"
+    - predicate: "biolink:applied_to_treat"
+      types: "ChemicalEntity → Disease / PhenotypicFeature"
+      measured_edges: 56
+      reason: "CHEBI 药物 ID 未映射到 ChEMBL"
+    - predicate: "biolink:participates_in"
+      types: "ChemicalEntity → Pathway"
+      measured_edges: 109290
+      reason: "主体类型不属于 Gene/Protein"
+    - predicate: "biolink:directly_physically_interacts_with"
+      types: "MolecularActivity → MolecularActivity"
+      measured_edges: 49
+      reason: "非 Drug→Gene，主体类型不在 V1"
+    - predicate: "biolink:expresses / biolink:has_sequence_variant"
+      types: "Cell → Protein / Genotype → SequenceVariant"
+      reason: "实体类型不在 V1 节点策略"
+
+# ---------------------------------------------------------------- 提取约束（供 extract_subgraph.py 使用）
+extraction:
+  max_hops: 2
+  hop1: "种子疾病 → 白名单关系直接邻居（Disease→Phenotype、Gene→Disease、Drug→Disease、Disease→SUBTYPE_OF 的父与直接子）"
+  hop2: "从 hop1 出发的受控扩展：Gene → {PARTICIPATES_IN Pathway, INVOLVED_IN BiologicalProcess}、Gene → Variant（Variant→AFFECTS→Gene 反向取边）、Drug → Gene（仅限 TREATS 种子疾病的药物）"
+  hop2_measured: "实测 13,886 个种子关联基因；AFFECTS 97,857 条、INVOLVED_IN 102,790 条、PARTICIPATES_IN 41,605 条；TARGETS 1,820 条"
+  forbidden: "禁止从高连接度节点继续扩散，禁止纳入 GO 根节点（GO:0008150 / GO:0003674 / GO:0005575）"
+  disease_subtree: "SUBTYPE_OF 仅保留种子疾病的直接父类与直接子类（实测父 102、子 14），不展开整棵 MONDO"
+  dedupe_key:
+    nodes: "id"
+    edges: "subject_id + predicate + object_id"
+  evidence_aggregation: "同一 subject+predicate+object 的多来源证据合并在同一行：source / source_dataset / source_record_id 用 | 连接，evidence_score 取最大值；不丢弃任何来源"

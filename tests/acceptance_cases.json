@@ -1,0 +1,233 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-11-09",
+  "source": "《血液病知识图谱_V1任务指引_Docker部署与RAGFlow接入》第十八章",
+  "note": "第十八章要求至少 25 条固定问题并写明期望命中实体/关系/来源。本文件含建议起始集 15 条（Q01-Q15）与扩充 10 条（Q16-Q25）。phase=2 表示数据层已可验收；phase=4-5 表示需 FastAPI/RAGFlow 上线后验收，数据层先给出可命中的实体与关系。",
+  "cases": [
+    {
+      "id": "Q01",
+      "question": "急性髓系白血病有哪些已知相关基因？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0018874 acute myeloid leukemia / 急性髓系白血病", "Gene 节点（HGNC）"],
+      "expected_relations": ["Gene → ASSOCIATED_WITH → Disease"],
+      "expected_sources": ["Monarch KG", "DisMech", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "11,438 个基因通过 ASSOCIATED_WITH 指向 MONDO:0018874"}
+    },
+    {
+      "id": "Q02",
+      "question": "APL 与 PML-RARA 有什么关系？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0012883 acute promyelocytic leukemia / 急性早幼粒细胞白血病", "HGNC:9113 PML", "HGNC:9864 RARA"],
+      "expected_relations": ["Gene → ASSOCIATED_WITH → Disease", "Variant → AFFECTS → Gene"],
+      "expected_sources": ["Monarch KG", "DisMech"],
+      "data_layer_check": {"status": "PASS", "evidence": "PML 与 RARA 均 ASSOCIATED_WITH APL；V1 不建融合基因节点，PML-RARA 融合需由 Variant/AFFECTS 与文献文本共同回答"}
+    },
+    {
+      "id": "Q03",
+      "question": "FLT3 与 AML 有什么关系？",
+      "phase": "2",
+      "expected_entities": ["HGNC:3765 FLT3", "MONDO:0018874 AML"],
+      "expected_relations": ["Gene → ASSOCIATED_WITH → Disease"],
+      "expected_sources": ["Monarch KG", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "存在 HGNC:3765 -[ASSOCIATED_WITH]-> MONDO:0018874"}
+    },
+    {
+      "id": "Q04",
+      "question": "哪些药物与 APL 相关？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0012883 APL", "Drug 节点（ChEMBL）"],
+      "expected_relations": ["Drug → TREATS → Disease"],
+      "expected_sources": ["Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "31 个药物通过 TREATS 指向 APL"}
+    },
+    {
+      "id": "Q05",
+      "question": "CML 相关的关键分子异常有哪些？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0011996 CML", "HGNC:76 ABL1", "CLINVAR Variant"],
+      "expected_relations": ["Gene → ASSOCIATED_WITH → Disease", "Variant → AFFECTS → Gene"],
+      "expected_sources": ["Monarch KG", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "4,449 个基因关联 CML；ABL1 有 11 个 CLINVAR 变异经 AFFECTS 指向"}
+    },
+    {
+      "id": "Q06",
+      "question": "ALL 有哪些相关基因或分子机制？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0004967 ALL", "Gene", "Pathway", "BiologicalProcess"],
+      "expected_relations": ["Gene → ASSOCIATED_WITH → Disease", "Gene → PARTICIPATES_IN → Pathway", "Gene → INVOLVED_IN → BiologicalProcess"],
+      "expected_sources": ["Monarch KG", "DisMech", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "7,752 个基因关联 ALL，且这些基因可再展开通路/生物过程"}
+    },
+    {
+      "id": "Q07",
+      "question": "CLL 常见的疾病相关基因有哪些？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0004948 B-cell chronic lymphocytic leukemia / 慢性淋巴细胞白血病"],
+      "expected_relations": ["Gene → ASSOCIATED_WITH → Disease"],
+      "expected_sources": ["Monarch KG", "DisMech", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "5,148 个基因关联 CLL"}
+    },
+    {
+      "id": "Q08",
+      "question": "再生障碍性贫血有哪些典型血液学表型？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0015909 AA", "HP:0001915 Aplastic anemia / 再生障碍性贫血", "HP:0005528 Bone marrow hypocellularity / 骨髓细胞减少"],
+      "expected_relations": ["Disease → HAS_PHENOTYPE → Phenotype"],
+      "expected_sources": ["Monarch KG", "DisMech"],
+      "data_layer_check": {"status": "PASS", "evidence": "AA 直接表型 2 个：HP:0001915、HP:0005528；全库表型中文覆盖 61/61"}
+    },
+    {
+      "id": "Q09",
+      "question": "再生障碍性贫血与免疫相关机制有哪些关联？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0015909 AA", "GO BiologicalProcess（名称含 immune）"],
+      "expected_relations": ["Gene → ASSOCIATED_WITH → Disease", "Gene → INVOLVED_IN → BiologicalProcess"],
+      "expected_sources": ["Monarch KG"],
+      "data_layer_check": {"status": "PASS", "evidence": "AA 关联基因 4,241 个；其中经 INVOLVED_IN 指向名称含 immune 的 GO 过程 117 个（如 GO:0002682 regulation of immune system process）"}
+    },
+    {
+      "id": "Q10",
+      "question": "环孢素与再生障碍性贫血之间是什么关系？",
+      "phase": "2",
+      "expected_entities": ["CHEMBL160 CYCLOSPORINE", "MONDO:0015909 AA"],
+      "expected_relations": ["Drug → TREATS → Disease"],
+      "expected_sources": ["Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "存在 CHEMBL160 -[TREATS]-> MONDO:0015909"}
+    },
+    {
+      "id": "Q11",
+      "question": "造血干细胞移植与再生障碍性贫血是什么关系？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0015909 AA", "HSCT / 治疗方案（V1 无节点类型）"],
+      "expected_relations": ["无（关系白名单未定义治疗方案关系）"],
+      "expected_sources": ["DisMech（仅 staging，未入图）"],
+      "data_layer_check": {"status": "EXPECTED_GAP", "evidence": "DisMech 的 20 条治疗条目（含 HSCT）保存在 data/staging/staged_dismech_treatments.csv；V1 正式图不含该关系，回答时必须声明“无图内关系证据”并转指南/文献文本"}
+    },
+    {
+      "id": "Q12",
+      "question": "血小板减少可以关联到哪些血液病种子实体？",
+      "phase": "2",
+      "expected_entities": ["HP:0001873 Thrombocytopenia", "MONDO:0012883 APL", "MONDO:0004967 ALL", "MONDO:0011996 CML", "MONDO:0004948 CLL"],
+      "expected_relations": ["Disease → HAS_PHENOTYPE → Phenotype"],
+      "expected_sources": ["Monarch KG"],
+      "data_layer_check": {"status": "PASS", "evidence": "HP:0001873 的入边来自 APL、ALL、CML、CLL 共 4 个种子疾病"}
+    },
+    {
+      "id": "Q13",
+      "question": "某一基因通过哪些通路与 AML 产生关联？",
+      "phase": "2",
+      "expected_entities": ["HGNC:3765 FLT3", "MONDO:0018874 AML", "Reactome Pathway"],
+      "expected_relations": ["Gene → ASSOCIATED_WITH → Disease", "Gene → PARTICIPATES_IN → Pathway"],
+      "expected_sources": ["Monarch KG", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "FLT3 关联 AML，并参与 27 条 Reactome 通路，例如 Reactome:R-HSA-9607240 FLT3 Signaling"}
+    },
+    {
+      "id": "Q14",
+      "question": "某药物的靶点是否与某白血病疾病节点关联？",
+      "phase": "2",
+      "expected_entities": ["CHEMBL941 IMATINIB", "HGNC:76 ABL1", "MONDO:0011996 CML"],
+      "expected_relations": ["Drug → TARGETS → Gene", "Gene → ASSOCIATED_WITH → Disease", "Drug → TREATS → Disease"],
+      "expected_sources": ["Open Targets", "Monarch KG"],
+      "data_layer_check": {"status": "PASS", "evidence": "CHEMBL941 → TARGETS → ABL1 → ASSOCIATED_WITH → CML，且 CHEMBL941 → TREATS → CML"}
+    },
+    {
+      "id": "Q15",
+      "question": "同一疾病中文名、英文名、缩写能否命中同一实体？",
+      "phase": "4-5",
+      "expected_entities": ["MONDO:0018874 AML：name=acute myeloid leukemia，name_zh=急性髓系白血病，synonyms 含 AML/ANLL"],
+      "expected_relations": ["无（实体解析用例）"],
+      "expected_sources": ["MONDO", "Monarch KG"],
+      "data_layer_check": {"status": "PASS", "evidence": "6 个核心疾病的 name/name_zh/synonyms 均包含中文名与缩写；API 归一化到同一 id 属阶段 4 验收"}
+    },
+    {
+      "id": "Q16",
+      "question": "AML 在疾病层级中的上级疾病是什么？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0018874 AML", "MONDO:0004643 myeloid leukemia", "MONDO:0010643 acute leukemia"],
+      "expected_relations": ["Disease → SUBTYPE_OF → Disease"],
+      "expected_sources": ["Monarch KG"],
+      "data_layer_check": {"status": "PASS", "evidence": "AML 有 2 条 SUBTYPE_OF：myeloid leukemia 与 acute leukemia"}
+    },
+    {
+      "id": "Q17",
+      "question": "APL 是否作为 AML 的亚型入图？",
+      "phase": "2",
+      "expected_entities": ["MONDO:0012883 APL", "MONDO:0017893 inherited acute myeloid leukemia"],
+      "expected_relations": ["Disease → SUBTYPE_OF → Disease"],
+      "expected_sources": ["Monarch KG"],
+      "data_layer_check": {"status": "PASS_WITH_NOTE", "evidence": "APL 的 SUBTYPE_OF 指向 MONDO:0017893（遗传性 AML），而非 MONDO:0018874；该差异已写入 docs/03_schema.md 与已知限制，不臆造 APL→AML 边"}
+    },
+    {
+      "id": "Q18",
+      "question": "伊马替尼是否治疗 CML？",
+      "phase": "2",
+      "expected_entities": ["CHEMBL941 IMATINIB", "MONDO:0011996 CML"],
+      "expected_relations": ["Drug → TREATS → Disease"],
+      "expected_sources": ["Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "存在 CHEMBL941 -[TREATS]-> MONDO:0011996"}
+    },
+    {
+      "id": "Q19",
+      "question": "药物—靶点关系的规模有多大？",
+      "phase": "2",
+      "expected_entities": ["Drug", "Gene"],
+      "expected_relations": ["Drug → TARGETS → Gene"],
+      "expected_sources": ["Open Targets", "Monarch KG"],
+      "data_layer_check": {"status": "PASS", "evidence": "TARGETS 1,820 条，覆盖 523 个药物与 625 个基因"}
+    },
+    {
+      "id": "Q20",
+      "question": "哪些关系有多来源交叉证据？",
+      "phase": "2",
+      "expected_entities": ["67 条多来源聚合边"],
+      "expected_relations": ["ASSOCIATED_WITH / TREATS / TARGETS 等白名单关系"],
+      "expected_sources": ["Monarch KG", "DisMech", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "67 条边的 source 以 | 并列：Monarch KG|Open Targets 38、DisMech|Open Targets 20、Monarch KG|DisMech 7、三者 2"}
+    },
+    {
+      "id": "Q21",
+      "question": "每条正式关系能否追溯到来源、版本和原始记录？",
+      "phase": "2",
+      "expected_entities": ["全部 284,023 条边"],
+      "expected_relations": ["全部白名单关系"],
+      "expected_sources": ["Monarch KG", "DisMech", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "source/source_version/source_record_id/license 覆盖 100%；带 PMID 的边 55,473 条；构建信息见 data/processed/build_manifest.json"}
+    },
+    {
+      "id": "Q22",
+      "question": "白名单之外的边如何处理？",
+      "phase": "2",
+      "expected_entities": ["320 条暂存边", "86 条 Genotype model_of 记录"],
+      "expected_relations": ["Variant → ASSOCIATED_WITH_INCREASED_LIKELIHOOD_OF / CAUSES → Disease（无对应白名单箭头）"],
+      "expected_sources": ["Monarch KG"],
+      "data_layer_check": {"status": "PASS", "evidence": "320 条全部写入 data/staging/edges_staged.csv 并注明“白名单无 Variant→Disease 箭头”（CAUSES 315、ASSOCIATED_WITH_INCREASED_LIKELIHOOD_OF 5）；另丢弃 86 条 Genotype 非 V1 节点类型行；白名单谓词但端点类型不符的组合按第十七章聚合写入 normalize_report.illegal_type_combo（如 biolink:has_phenotype|Gene->Phenotype），不进入正式图"}
+    },
+    {
+      "id": "Q23",
+      "question": "基因实体是否存在非法 ID？",
+      "phase": "2",
+      "expected_entities": ["13,886 个 Gene"],
+      "expected_relations": ["无（实体质量用例）"],
+      "expected_sources": ["Monarch KG", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "13,800 个 HGNC + 86 个标准 Ensembl ENSG000... 兜底；ENSG:ENSG 双前缀 0 个"}
+    },
+    {
+      "id": "Q24",
+      "question": "图中是否存在孤立节点？",
+      "phase": "2",
+      "expected_entities": ["全部 128,783 个节点"],
+      "expected_relations": ["全部白名单关系"],
+      "expected_sources": ["Monarch KG", "DisMech", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "孤立节点 0 个；悬空边 0 条"}
+    },
+    {
+      "id": "Q25",
+      "question": "为什么默认查询 hop 不超过 2？",
+      "phase": "4-5",
+      "expected_entities": ["种子疾病 8 个", "hop1/hop2 子图"],
+      "expected_relations": ["1-hop: ASSOCIATED_WITH/TREATS/HAS_PHENOTYPE/SUBTYPE_OF", "2-hop: PARTICIPATES_IN/INVOLVED_IN/AFFECTS"],
+      "expected_sources": ["Monarch KG", "DisMech", "Open Targets"],
+      "data_layer_check": {"status": "PASS", "evidence": "data/processed/extract_report.json：hop1 边 38,747、hop2 边 242,252；未做 3-hop 扩展；API 默认 max_hops=2 属阶段 4 验收"}
+    }
+  ]
+}

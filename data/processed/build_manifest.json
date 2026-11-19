@@ -1,0 +1,30 @@
+{
+  "build_id": "hematology-kg-v1-20261118",
+  "build_date": "2026-11-18",
+  "sources": [
+    {
+      "name": "DisMech",
+      "version": "38c23e10b0285becf70a0416fdb267698dfd20fe",
+      "license": "BSD-3-Clause (repository); AI-curated content"
+    },
+    {
+      "name": "MONDO",
+      "version": "2026-11-03",
+      "license": "CC BY 4.0"
+    },
+    {
+      "name": "Monarch KG",
+      "version": "2026-11-11",
+      "license": "未声明统一许可；上游逐源许可保留"
+    },
+    {
+      "name": "Open Targets",
+      "version": "26.09",
+      "license": "平台数据 CC0；上游逐源条款见 docs/02_license_review.md"
+    }
+  ],
+  "node_count": 128783,
+  "edge_count": 284023,
+  "disease_count": 115,
+  "git_commit": "6a6f74045cbac64ec47cfce7c87bfc709194e206"
+}

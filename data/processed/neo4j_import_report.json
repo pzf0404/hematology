@@ -1,0 +1,179 @@
+{
+  "build_id": "hematology-kg-v1-20261118",
+  "imported_at": "2026-11-18T16:31:41+08:00",
+  "neo4j_uri": "bolt://127.0.0.1:7687",
+  "import_script": "etl/load_neo4j.py",
+  "import_script_version": "1.0.0",
+  "source_files": {
+    "nodes_csv_sha256": "1F5C6AEE0C7E88CE8A57D5DF0474C5021D52B1A6B5BE7D7B1991E2A5568EA59F",
+    "edges_csv_sha256": "77653A250E8E59F97080A8D1529281C5DDD1FF790164F1DD01CF92BAF68B5DAB"
+  },
+  "expected": {
+    "nodes": 128783,
+    "node_labels": {
+      "BiologicalProcess": 10701,
+      "Disease": 115,
+      "Drug": 867,
+      "Gene": 13886,
+      "Pathway": 2276,
+      "Phenotype": 61,
+      "Variant": 100877
+    },
+    "edges": 284023,
+    "edge_types": {
+      "AFFECTS": 100885,
+      "ASSOCIATED_WITH": 35204,
+      "HAS_PHENOTYPE": 80,
+      "INVOLVED_IN": 102790,
+      "PARTICIPATES_IN": 41605,
+      "SUBTYPE_OF": 112,
+      "TARGETS": 1820,
+      "TREATS": 1527
+    }
+  },
+  "written_this_run": {
+    "nodes": 0,
+    "node_labels": {
+      "Variant": 0,
+      "BiologicalProcess": 0,
+      "Gene": 0,
+      "Pathway": 0,
+      "Disease": 0,
+      "Phenotype": 0,
+      "Drug": 0
+    },
+    "edges": 0,
+    "edge_types": {
+      "AFFECTS": 0,
+      "ASSOCIATED_WITH": 0,
+      "INVOLVED_IN": 0,
+      "PARTICIPATES_IN": 0,
+      "HAS_PHENOTYPE": 0,
+      "TREATS": 0,
+      "TARGETS": 0,
+      "SUBTYPE_OF": 0
+    },
+    "missing_endpoints": 0
+  },
+  "neo4j": {
+    "components": [
+      {
+        "name": "Neo4j Kernel",
+        "versions": [
+          "5.26.32"
+        ],
+        "edition": "community"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "entity_id_unique",
+        "type": "UNIQUENESS",
+        "labelsOrTypes": [
+          "Entity"
+        ],
+        "properties": [
+          "id"
+        ]
+      }
+    ],
+    "indexes": [
+      {
+        "name": "disease_name",
+        "type": "RANGE",
+        "labelsOrTypes": [
+          "Disease"
+        ],
+        "properties": [
+          "name"
+        ],
+        "state": "ONLINE"
+      },
+      {
+        "name": "entity_id_unique",
+        "type": "RANGE",
+        "labelsOrTypes": [
+          "Entity"
+        ],
+        "properties": [
+          "id"
+        ],
+        "state": "ONLINE"
+      },
+      {
+        "name": "entity_name",
+        "type": "RANGE",
+        "labelsOrTypes": [
+          "Entity"
+        ],
+        "properties": [
+          "name"
+        ],
+        "state": "ONLINE"
+      },
+      {
+        "name": "entity_name_zh",
+        "type": "RANGE",
+        "labelsOrTypes": [
+          "Entity"
+        ],
+        "properties": [
+          "name_zh"
+        ],
+        "state": "ONLINE"
+      },
+      {
+        "name": "gene_symbol",
+        "type": "RANGE",
+        "labelsOrTypes": [
+          "Gene"
+        ],
+        "properties": [
+          "symbol"
+        ],
+        "state": "ONLINE"
+      },
+      {
+        "name": "index_343aff4e",
+        "type": "LOOKUP",
+        "labelsOrTypes": null,
+        "properties": null,
+        "state": "ONLINE"
+      },
+      {
+        "name": "index_f7700477",
+        "type": "LOOKUP",
+        "labelsOrTypes": null,
+        "properties": null,
+        "state": "ONLINE"
+      }
+    ]
+  },
+  "actual": {
+    "nodes": 128783,
+    "node_labels": {
+      "Disease": 115,
+      "Gene": 13886,
+      "Variant": 100877,
+      "Phenotype": 61,
+      "Drug": 867,
+      "Pathway": 2276,
+      "BiologicalProcess": 10701
+    },
+    "edges": 284023,
+    "edge_types": {
+      "AFFECTS": 100885,
+      "ASSOCIATED_WITH": 35204,
+      "INVOLVED_IN": 102790,
+      "PARTICIPATES_IN": 41605,
+      "HAS_PHENOTYPE": 80,
+      "TREATS": 1527,
+      "TARGETS": 1820,
+      "SUBTYPE_OF": 112
+    },
+    "isolated_nodes": 0,
+    "mismatches": []
+  },
+  "duration_seconds": 39.1,
+  "status": "PASS"
+}

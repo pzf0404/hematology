@@ -1,0 +1,151 @@
+# 血液病知识图谱 V1 — 实体标准化映射
+# 用途：把各数据源的疾病/基因标识统一到 V1 canonical_id
+# 核验日期：2026-11-09
+# 核验方式：Open Targets Platform GraphQL v4 实测（dataVersion 26.09）
+# 规则：禁止用名称模糊匹配代替 ID 映射；无法映射时保留 null 并写明依据
+
+version: "1.0"
+verified_at: "2026-11-09"
+open_targets:
+  endpoint: "https://api.platform.opentargets.org/api/v4/graphql"
+  data_version: "26.09"
+  note: "OT 使用下划线格式 ID（MONDO_xxx / EFO_xxx），不接受冒号格式"
+
+diseases:
+  - seed_key: "AML"
+    canonical_id: "MONDO:0018874"
+    name: "acute myeloid leukemia"
+    open_targets_id: "MONDO_0018874"
+    in_graph: true
+
+  - seed_key: "APL"
+    canonical_id: "MONDO:0012883"
+    name: "acute promyelocytic leukemia"
+    open_targets_id: "MONDO_0012883"
+    in_graph: true
+
+  - seed_key: "ALL"
+    canonical_id: "MONDO:0004967"
+    name: "acute lymphoblastic leukemia"
+    open_targets_id: "MONDO_0004967"
+    in_graph: true
+
+  - seed_key: "CML"
+    canonical_id: "MONDO:0011996"
+    name: "chronic myeloid leukemia"
+    open_targets_id: "MONDO_0011996"
+    in_graph: true
+
+  - seed_key: "CLL"
+    canonical_id: "MONDO:0004948"
+    name: "B-cell chronic lymphocytic leukemia"
+    open_targets_id: "MONDO_0004948"
+    in_graph: true
+
+  - seed_key: "AA"
+    canonical_id: "MONDO:0015909"
+    name: "aplastic anemia"
+    open_targets_id: "MONDO_0015909"
+    in_graph: true
+
+  - seed_key: "acquired_AA"
+    canonical_id: "MONDO:0015610"
+    name: "acquired aplastic anemia"
+    open_targets_id: "EFO_0006926"
+    in_graph: true
+    mapping_note: "OT 实测不存在 MONDO_0015610；EFO_0006926 为 OT 中的 acquired aplastic anemia"
+
+  - seed_key: "SAA"
+    canonical_id: "EFO:0006927"
+    name: "severe aplastic anemia"
+    open_targets_id: "EFO_0006927"
+    in_graph: true
+    mapping_note: "MONDO 无独立 SAA 实体；Open Targets 26.09 以 EFO_0006927 提供，按任务文档“如数据源提供”纳入 V1"
+
+dismech:
+  repository: "https://github.com/monarch-initiative/dismech"
+  ref: "38c23e10b0285becf70a0416fdb267698dfd20fe"
+  files:
+    - path: "kb/disorders/Acute_Lymphoblastic_Leukemia.yaml"
+      disease_id: "MONDO:0004967"
+      in_graph: true
+    - path: "kb/disorders/Chronic_Myeloid_Leukemia.yaml"
+      disease_id: "MONDO:0011996"
+      in_graph: true
+    - path: "kb/disorders/Chronic_Lymphocytic_Leukemia.yaml"
+      disease_id: "MONDO:0004948"
+      in_graph: true
+    - path: "kb/disorders/Acute_Myeloid_Leukemia_with_CEBPA_Somatic_Mutations.yaml"
+      disease_id: "MONDO:0017894"
+      in_graph: false
+      mapping_note: "AML 亚型；V1 不作为独立种子节点，保留原始文件供后续版本"
+    - path: "kb/disorders/Inherited_Aplastic_Anemia.yaml"
+      disease_id: "MONDO:0001713"
+      in_graph: false
+      mapping_note: "遗传性再障不与 AA 合并；该文件的 DisMech 证据不采用（in_graph: false），但 Monarch 的 SUBTYPE_OF 一跳仍将其作为关联疾病带入正式图"
+
+# ---------------------------------------------------------------- 表型中文名
+# 依据：任务指引第十七章「至少对核心疾病和常用表型提供中文名/同义词映射」
+# 覆盖 V1 正式图当前 61 个表型的全部条目；采用通用医学译名，不修改英文原名与 HPO ID
+phenotype_name_zh:
+  "HP:0001903": "贫血"
+  "HP:0001873": "血小板减少"
+  "HP:0012378": "乏力"
+  "HP:0002716": "淋巴结肿大"
+  "HP:0002027": "腹痛"
+  "HP:0001892": "异常出血"
+  "HP:0001882": "白细胞总数减少"
+  "HP:0001945": "发热"
+  "HP:0001974": "白细胞总数增多"
+  "HP:0002719": "反复感染"
+  "HP:0001744": "脾大"
+  "HP:0001824": "体重下降"
+  "HP:0001912": "嗜碱性粒细胞形态异常"
+  "HP:0001911": "粒细胞形态异常"
+  "HP:0012135": "粒细胞生成细胞形态异常"
+  "HP:0001871": "血液及造血组织异常"
+  "HP:0004808": "急性髓系白血病"
+  "HP:0004836": "急性早幼粒细胞白血病"
+  "HP:0030955": "酒精成瘾"
+  "HP:0002039": "厌食"
+  "HP:0033827": "前纵隔肿块"
+  "HP:0001915": "再生障碍性贫血"
+  "HP:0031020": "骨髓细胞增多"
+  "HP:0005528": "骨髓细胞减少"
+  "HP:0002653": "骨痛"
+  "HP:0000978": "易瘀伤"
+  "HP:0005374": "细胞免疫缺陷"
+  "HP:0031035": "慢性感染"
+  "HP:0005550": "慢性淋巴细胞白血病"
+  "HP:0005506": "慢性髓性白血病"
+  "HP:0001875": "中性粒细胞总数减少"
+  "HP:0025420": "弥漫性肺泡出血"
+  "HP:0005521": "弥散性血管内凝血"
+  "HP:0031364": "瘀斑"
+  "HP:0000421": "鼻出血"
+  "HP:0002875": "劳力性呼吸困难"
+  "HP:0100758": "坏疽"
+  "HP:0000225": "牙龈出血"
+  "HP:0000212": "牙龈增生"
+  "HP:0000790": "血尿"
+  "HP:0002240": "肝大"
+  "HP:0001433": "肝脾大"
+  "HP:0011900": "低纤维蛋白原血症"
+  "HP:0031807": "嗜碱性粒细胞总数增多"
+  "HP:0005523": "淋巴增殖性疾病"
+  "HP:0100608": "子宫不规则出血"
+  "HP:0002011": "中枢神经系统形态异常"
+  "HP:0001324": "肌无力"
+  "HP:0005547": "骨髓增殖性疾病"
+  "HP:0030166": "盗汗"
+  "HP:0030140": "口腔出血"
+  "HP:0001876": "全血细胞减少"
+  "HP:0000967": "瘀点"
+  "HP:0004848": "Ph 阳性急性淋巴细胞白血病"
+  "HP:0004396": "食欲减退"
+  "HP:0031245": "咳痰"
+  "HP:0000979": "紫癜"
+  "HP:0004852": "白细胞碱性磷酸酶降低"
+  "HP:0010280": "口腔炎"
+  "HP:0001894": "血小板增多"
+  "HP:0002321": "眩晕"

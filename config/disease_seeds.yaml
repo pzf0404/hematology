@@ -1,0 +1,115 @@
+# 血液病知识图谱 V1 — 疾病种子配置
+# 适用范围：白血病 + 再生障碍性贫血专病子图
+# 所有 canonical_id 均经 EMBL-EBI OLS4 (MONDO) 官方术语服务核验
+# 核验日期：2026-11-09
+# 核验方式：OLS4 term API，iri = http://purl.obolibrary.org/obo/MONDO_xxx
+# 禁止手填 ontology ID；canonical_id 为 null 时必须写明 mapping 依据
+
+version: "1.0"
+verified_at: "2026-11-09"
+ontology: "MONDO"
+ontology_service: "https://www.ebi.ac.uk/ols4/ontologies/mondo"
+
+leukemia:
+  diseases:
+    - canonical_id: "MONDO:0018874"
+      name: "acute myeloid leukemia"
+      name_zh: "急性髓系白血病"
+      abbrev: "AML"
+      synonyms:
+        - "AML"
+        - "acute myelogenous leukemia"
+        - "acute myeloblastic leukemia"
+        - "acute myelocytic leukemia"
+        - "acute nonlymphocytic leukemia"
+        - "acute granulocytic leukemia"
+      xrefs: ["DOID:9119", "EFO:0000222", "ICD10CM:C92.0"]
+      note: "主种子；APL 为其独立亚型，不能仅作为 AML 同义词"
+
+    - canonical_id: "MONDO:0012883"
+      name: "acute promyelocytic leukemia"
+      name_zh: "急性早幼粒细胞白血病"
+      abbrev: "APL"
+      synonyms:
+        - "APL"
+        - "APML - acute promyelocytic leukemia"
+        - "AML M3"
+        - "promyelocytic leukemia"
+        - "acute myeloblastic leukemia 3"
+      xrefs: ["DOID:0060318", "EFO:0000224", "ICD10CM:C92.4"]
+      note: "独立亚型种子，单独建节点，不并入 AML"
+
+    - canonical_id: "MONDO:0004967"
+      name: "acute lymphoblastic leukemia"
+      name_zh: "急性淋巴细胞白血病"
+      abbrev: "ALL"
+      synonyms:
+        - "ALL"
+        - "acute lymphocytic leukemia"
+        - "acute lymphoblastic leukemia (ALL)"
+      xrefs: ["DOID:9952", "EFO:0000220", "ICD10CM:C91.0"]
+      note: "可在后续版本细分 B-ALL / T-ALL"
+
+    - canonical_id: "MONDO:0011996"
+      name: "chronic myeloid leukemia"
+      name_zh: "慢性髓性白血病"
+      abbrev: "CML"
+      synonyms:
+        - "CML"
+        - "chronic myelogenous leukemia"
+        - "chronic granulocytic leukemia"
+        - "chronic myelocytic leukemia"
+      xrefs: ["DOID:8552", "EFO:0000339", "ICD10CM:C92.1"]
+      note: "疾病实体独立维护"
+
+    - canonical_id: "MONDO:0004948"
+      name: "B-cell chronic lymphocytic leukemia"
+      name_zh: "慢性淋巴细胞白血病"
+      abbrev: "CLL"
+      synonyms:
+        - "CLL"
+        - "chronic lymphocytic leukemia"
+        - "B-CLL"
+        - "B-cell CLL"
+        - "B cell CLL"
+      xrefs: ["DOID:1040", "EFO:0000095", "ICD10CM:C91.1"]
+      note: "MONDO 无泛称 CLL 独立实体；以 B 细胞 CLL 作为 CLL canonical"
+
+aplastic_anemia:
+  diseases:
+    - canonical_id: "MONDO:0015909"
+      name: "aplastic anemia"
+      name_zh: "再生障碍性贫血"
+      abbrev: "AA"
+      aliases: ["再障"]   # 临床常用中文简称，非 MONDO 官方同义词
+      synonyms: []   # MONDO 官方未提供同义词（OLS4 实测 0 条）
+      clinical_grades:
+        - "SAA"
+        - "VSAA"
+      xrefs: ["DOID:12449", "MESH:D000741", "ICD9:284.9"]
+      note: "SAA/VSAA 为临床分级；SAA 由 Open Targets 以 EFO:0006927 提供并单独入图，VSAA 数据源未提供"
+
+    - canonical_id: "MONDO:0015610"
+      name: "acquired aplastic anemia"
+      name_zh: "获得性再生障碍性贫血"
+      aliases: ["获得性再障"]   # 临床常用中文简称，非 MONDO 官方同义词
+      synonyms:
+        - "acquired aplastic anemia"
+      xrefs: ["Orphanet:164823", "UMLS:C0271907"]
+      note: "获得性 AA 为 V1 核心临床实体"
+
+    - canonical_id: "EFO:0006927"
+      name: "severe aplastic anemia"
+      name_zh: "重型再生障碍性贫血"
+      abbrev: "SAA"
+      aliases: ["重型再障"]   # 临床常用中文简称，非 EFO 官方同义词
+      synonyms:
+        - "severe aplastic anemia"
+      xrefs: ["EFO:0006927"]
+      note: "MONDO 无独立实体；Open Targets 26.09 以 EFO:0006927 提供（103 靶点/17 候选药），按任务文档“如数据源提供”纳入 V1；VSAA 数据源未提供"
+
+exclusions:
+  - canonical_id: "MONDO:0001713"
+    name: "inherited aplastic anemia"
+    name_zh: "遗传性再生障碍性贫血"
+    reason: "遗传性骨髓衰竭综合征，指引要求不得与获得性 AA 合并"
