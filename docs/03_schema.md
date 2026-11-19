@@ -1,143 +1,154 @@
-# 阶段 3：Neo4j Schema 与导入记录
+# Schema 与 Neo4j 导入说明
 
-依据：任务指引 六（Schema）、十（Docker 部署）、十一（Neo4j 导入与索引）、十六（版本追踪）、十七（质量控制）、十八（验收问题集）。
-数据基线为阶段 2 冻结产物：`data/processed/nodes.csv` 128,783 行、`edges.csv` 284,023 行（Monarch KG 2026-11-11），校验 28 项全 PASS。
+- 数据基线：`hematology-kg-v1-20261118`（Monarch KG 2026-11-11）
+- 规模：128,783 节点 / 284,023 边 / 115 个疾病
+- 导入脚本：`etl/load_neo4j.py` 1.0.0
+- 约束与索引：`cypher/schema.cypher`
 
-## 1. 节点模型
+## 一、节点
 
-所有节点统一带 `:Entity` 标签，再叠加业务标签（多标签结构）。这样任务文档给出的 `Entity.id` 唯一约束可以原样落地，跨类型检索也有统一入口。
+所有节点统一为 `:Entity` + 业务标签的多标签结构，`Entity.id` 全局唯一。
 
-| CSV `label` | Neo4j 标签 | 节点数 | 说明 |
-|---|---|---|---|
-| Disease | `:Entity:Disease` | 115 | 8 个种子（含 EFO SAA）+ MONDO 父类/子类 |
-| Gene | `:Entity:Gene` | 13,886 | HGNC 为主；86 个无 HGNC 唯一匹配的 ncRNA 保留原始 Ensembl ID（`ENSG000...`） |
-| Variant | `:Entity:Variant` | 100,877 | CLINVAR |
-| Phenotype | `:Entity:Phenotype` | 61 | HPO |
-| Drug | `:Entity:Drug` | 867 | Open Targets / ChEMBL |
-| Pathway | `:Entity:Pathway` | 2,276 | Reactome |
-| BiologicalProcess | `:Entity:BiologicalProcess` | 10,701 | GO |
+| 标签 | 数量 | 主标识 | 说明 |
+|---|---:|---|---|
+| Disease | 115 | MONDO / EFO | 8 个种子疾病 + 1–2 hop 内的 MONDO 父/子疾病；重型再障使用 `EFO:0006927` |
+| Gene | 13,886 | HGNC；86 个为 ENSG | 仅人类基因；无 HGNC 唯一匹配的 ncRNA 保留 Ensembl ID |
+| Variant | 100,877 | CLINVAR | 仅 ClinVar 变异 |
+| Phenotype | 61 | HP | 仅人类表型本体，含种子疾病与映射表覆盖的中文名 |
+| Drug | 867 | CHEMBL | 来自 Open Targets 药物与机制数据 |
+| Pathway | 2,276 | Reactome | 仅种子关联基因触达的通路 |
+| BiologicalProcess | 10,701 | GO | 排除 GO 根节点 |
 
-节点属性：`id`、`label`、`name`、`name_zh`、`canonical_id`、`synonyms`、`source_ids`、`xrefs`、`description`、`source`、`source_version`、`retrieved_at`，空值不写入。
+节点字段（`data/processed/nodes.csv`，12 列）：
 
-派生字段：`Gene.symbol = name`。`nodes.csv` 没有独立 symbol 列，而 HGNC 的 `name` 本身即官方 symbol，派生后满足任务文档要求的 `Gene(symbol)` 索引，不修改已冻结的 CSV。
-
-## 2. 关系模型
-
-关系类型直接使用白名单大写谓词，方向与阶段 2 校验一致（`data/processed/validation_report.json` 28/28 PASS）。
-
-| 关系类型 | 方向 | 边数 |
-|---|---|---|
-| `HAS_PHENOTYPE` | Disease → Phenotype | 80 |
-| `ASSOCIATED_WITH` | Gene → Disease | 35,204 |
-| `AFFECTS` | Variant → Gene | 100,885 |
-| `TREATS` | Drug → Disease | 1,527 |
-| `TARGETS` | Drug → Gene | 1,820 |
-| `PARTICIPATES_IN` | Gene → Pathway | 41,605 |
-| `INVOLVED_IN` | Gene → BiologicalProcess | 102,790 |
-| `SUBTYPE_OF` | Disease → Disease | 112 |
-
-边属性：`edge_id`、`predicate`、`original_predicate`、`source`、`source_dataset`、`source_version`、`source_record_id`、`evidence_score`（数值）、`pmid`、`doi`、`license`、`retrieved_at`。`subject_id`/`object_id` 由图结构表达，不重复存为属性。
-
-## 3. 约束与索引
-
-`cypher/schema.cypher`，由导入脚本自动执行：
-
-| 名称 | 类型 | 目标 | 依据 |
-|---|---|---|---|
-| `entity_id_unique` | 唯一约束 | `Entity(id)` | 任务文档第十一章原文 |
-| `disease_name` | 索引 | `Disease(name)` | 任务文档第十一章原文 |
-| `gene_symbol` | 索引 | `Gene(symbol)` | 任务文档第十一章原文（symbol 为派生字段） |
-| `entity_name` | 索引 | `Entity(name)` | 支撑阶段 4 `/v1/entity/search` 英文检索 |
-| `entity_name_zh` | 索引 | `Entity(name_zh)` | 任务指引第十七章「中文命中」、第二十章「中文搜索命不中」 |
-
-前三条是文档硬性要求；后两条是为第十二章实体搜索和第十七章中文命中准备的，属于文档「至少建立以下约束/索引」的允许范围。
-
-## 4. 导入设计（etl/load_neo4j.py）
-
-- 导入方式：Python neo4j driver + `UNWIND` 批量写入，批量默认 2,000 行（任务文档第十一章允许 driver 或 LOAD CSV）。
-- 幂等：节点 `MERGE (n:Entity {id})`；关系 `MERGE (s)-[r:TYPE {edge_id}]->(o)`。重复执行不产生重复节点/关系。
-- 异常统计：每条边写入后比对 `RETURN count(*)` 与批大小，统计「缺失端点」行数（应为 0）。
-- 导入后核验：节点/关系总数、7 类节点、8 类关系逐项与 CSV 基线对比，不一致列 FAIL 并以退出码 1 结束。
-- 版本记录：报告写入 `data/processed/neo4j_import_report.json`，包含 Neo4j 组件版本、编辑版、导入脚本版本 `1.0.0`、两个 CSV 的 SHA256、耗时、约束/索引清单。
-- 预演：`--dry-run` 只读统计 CSV，不连库；`--verify-only` 只核验。
-
-## 5. 执行步骤（由项目负责人执行）
-
-```powershell
-# 0) 进入项目
-cd c:\Users\Lenovo\Desktop\任务\hematology-kg
-
-# 1) 生成本地环境变量（.env 已在 .gitignore 中）
-Copy-Item .env.example .env
-#    打开 .env，把 NEO4J_PASSWORD 改成强密码
-
-# 2) 创建 Docker 网络（已存在会报错，忽略即可）
-docker network create ai-network
-
-# 3) 启动 Neo4j（首次拉取 neo4j:5-community 镜像）
-docker compose up -d
-
-# 4) 等待 healthy / 就绪
-docker ps --filter name=hematology-neo4j
-docker exec hematology-neo4j cypher-shell -u neo4j -p <你的密码> "RETURN 1;"
-
-# 5) 安装 Python 驱动并导入
-python -m pip install "neo4j>=5,<7"
-$env:NEO4J_PASSWORD="<你的密码>"
-python -m etl.load_neo4j
-
-# 6) 幂等验证：再执行一次，计数必须不变
-python -m etl.load_neo4j
-
-# 7) Neo4j Browser 执行示例查询
-#    浏览器打开 http://127.0.0.1:7474，粘贴 cypher/acceptance_queries.cypher 中的语句
+```text
+id,label,name,name_zh,canonical_id,synonyms,source_ids,xrefs,description,source,source_version,retrieved_at
 ```
 
-## 6. 核验结果（执行后回填）
+- `name`：英文名；Gene 的 `name` 即 HGNC 官方 symbol，导入时派生为 `symbol` 属性以支撑索引。
+- `name_zh`：中文名；仅种子疾病、`config/entity_mapping.yaml` 覆盖的表型与药物有值，其余为空。
+- `synonyms`：多值用 `|` 连接。
+- `source_ids` / `xrefs`：保留上游交叉引用，不参与图查询。
 
-| 项 | 期望 | 实测 | 结论 |
-|---|---|---|---|
-| 节点总数 `MATCH (n:Entity)` | 128,783 | 128,783 | PASS |
-| 关系总数 `MATCH ()-[r]->()` | 284,023 | 284,023 | PASS |
-| 7 类节点分项 | 见 §1 | 115 / 13,886 / 100,877 / 61 / 867 / 2,276 / 10,701 | PASS |
-| 8 类关系分项 | 见 §2 | 80 / 35,204 / 100,885 / 1,527 / 1,820 / 41,605 / 102,790 / 112 | PASS |
-| 孤立节点 | 0 | 0 | PASS |
-| 约束/索引 | 5 条 | 1 约束 + 4 索引；另有 2 个自动标签索引 | PASS |
-| 重复执行计数不变 | 不变 | 图内计数不变；2026-11-18 全链路重跑新建 0 | PASS |
-| Neo4j 版本 | `5-community` 实际解析版本 | 导入时 5.26.32；2026-11-12 曾复验 5.26.33；2026-11-13 与 2026-11-18 重新导入/重跑均为 5.26.32（镜像 tag 未固定，重建前需重新记录） | PASS |
-| 导入脚本版本 | 1.0.0 | 1.0.0 | PASS |
+## 二、关系
 
-### 6.1 验收查询实测（Neo4j 5.26.32 Community，2026-11-13 复验；2026-11-12 曾为 5.26.33，查询结果一致，只读 Cypher）
+| 类型 | 数量 | 方向 |
+|---|---:|---|
+| AFFECTS | 100,885 | Variant → Gene |
+| ASSOCIATED_WITH | 35,204 | Gene → Disease |
+| HAS_PHENOTYPE | 80 | Disease → Phenotype |
+| INVOLVED_IN | 102,790 | Gene → BiologicalProcess |
+| PARTICIPATES_IN | 41,605 | Gene → Pathway |
+| SUBTYPE_OF | 112 | Disease → Disease |
+| TARGETS | 1,820 | Drug → Gene |
+| TREATS | 1,527 | Drug → Disease |
 
-| 查询 | 实测结果 |
+关系字段（`data/processed/edges.csv`，14 列）：
+
+```text
+edge_id,subject_id,predicate,object_id,original_predicate,source,source_dataset,
+source_version,source_record_id,evidence_score,pmid,doi,license,retrieved_at
+```
+
+- `original_predicate`：必须保留上游谓词语义，不做二次推断。
+- 同一 `subject_id + predicate + object_id` 的多来源证据合并为一行：`source`、`source_dataset`、`source_record_id` 用 `|` 连接，`evidence_score` 取最大值。
+- `edge_id` 由 `subject_id|predicate|object_id` 稳定哈希生成，是 Neo4j 关系的幂等键。
+
+## 三、Neo4j 建模
+
+```cypher
+// 约束：实体 id 唯一
+CREATE CONSTRAINT entity_id_unique IF NOT EXISTS
+FOR (n:Entity) REQUIRE n.id IS UNIQUE;
+
+// 索引：疾病名、基因 symbol、跨类型英文名、中文名
+CREATE INDEX disease_name IF NOT EXISTS FOR (n:Disease) ON (n.name);
+CREATE INDEX gene_symbol IF NOT EXISTS FOR (n:Gene) ON (n.symbol);
+CREATE INDEX entity_name IF NOT EXISTS FOR (n:Entity) ON (n.name);
+CREATE INDEX entity_name_zh IF NOT EXISTS FOR (n:Entity) ON (n.name_zh);
+```
+
+`etl/load_neo4j.py` 启动时按分号切分 `cypher/schema.cypher` 并逐条执行，已在线对象重复执行不报错。
+
+## 四、导入流程
+
+```powershell
+docker compose up -d hematology-neo4j
+$env:NEO4J_PASSWORD = ((Select-String -Path .env -Pattern '^NEO4J_PASSWORD=').Line -replace '^NEO4J_PASSWORD=','').Trim()
+docker exec hematology-neo4j cypher-shell -u neo4j -p $env:NEO4J_PASSWORD "RETURN 1;"
+python -m etl.load_neo4j
+```
+
+导入逻辑：
+
+1. 建立约束与索引；
+2. 按标签分批 `UNWIND + MERGE (n:Entity {id})`，再补业务标签；
+3. 按关系类型分批 `MATCH` 两端点后 `MERGE (s)-[r:TYPE {edge_id}]->(o)`；
+4. 逐标签、逐关系类型对比 CSV 实测值；
+5. 写 `data/processed/neo4j_import_report.json`。
+
+幂等性：节点按 `id` 合并、关系按 `edge_id` 合并；重复执行时 `written_this_run` 为 0，节点/边总数不变。
+
+## 五、导入结果
+
+| 项目 | 结果 |
 |---|---|
-| AML 关联基因 / 药物 / 表型 | 11,438 / 587 / 2 |
-| APL 关联基因 / 药物 / 表型 | 2,001 / 31 / 38 |
-| ALL 关联基因 / 药物 / 表型 | 7,752 / 306 / 11 |
-| CML 关联基因 / 药物 / 表型 | 4,449 / 179 / 17 |
-| CLL 关联基因 / 药物 / 表型 | 5,148 / 345 / 10 |
-| AA 关联基因 / 药物 / 表型 | 4,241 / 62 / 2 |
-| 获得性 AA 关联基因 / 药物 / 表型 | 72 / 0 / 0 |
-| SAA（EFO:0006927）关联基因 / 药物 / 表型 | 103 / 17 / 0 |
-| FLT3 → AML | 1 条 |
-| PML、RARA → APL | 两个基因均命中 |
-| 环孢素 → AA / 伊马替尼 → CML | 1 条 / 2 条 |
-| 血小板减少关联种子疾病 | 4 个（APL/ALL/CML/CLL） |
-| AA 免疫类 BP | 117 个 |
-| 药物→靶点→基因→AML 完整路径 | 1,791 条 |
-| 中文“急性髓系白血病”/AML 搜索 | 规范节点 `MONDO:0018874` 排第一 |
-| 抽查 30 条边溯源字段 | 30/30 完整（bad=0；固定抽样明细见 `data/processed/edge_traceability_sample.csv`） |
+| Neo4j 版本 | 5.26.32 Community |
+| 节点 | 128,783（期望 128,783） |
+| 关系 | 284,023（期望 284,023） |
+| 缺失端点 | 0 |
+| 孤立节点 | 0 |
+| 计数不一致项 | 无 |
+| 约束/索引 | 1 个唯一约束 + 4 个业务索引，全部 ONLINE |
+| 状态 | PASS |
 
-## 7. 与任务文档的差异说明
+分类型计数与 CSV 完全一致，详见 `data/processed/neo4j_import_report.json`。
 
-1. `docker-compose.yml` 在阶段 3 只含 `hematology-neo4j`；阶段 4 已按任务文档模板追加 `hematology-kg-api`（build、`depends_on`、只读挂载 `config/` 与 `data/processed/`）。
-2. 文档模板未发布端口；Neo4j 的 `7687`/`7474` 与 API 的 `18080` 均只绑定 `127.0.0.1`，符合表 9「Bolt 端口不对公网暴露」。
-3. `Gene.symbol` 为派生字段（见 §1），CSV 未改动。
-4. `Protein`、`Treatment`、`CellType` 未建节点：阶段 1–2 实测这些类型在选定数据源中没有符合白名单的关系，启用会产生孤立节点，违反表 11「孤立节点」要求。`RELATED_TO` 同前，保持关闭。
-5. `APL` 的 `SUBTYPE_OF` 指向 `inherited acute myeloid leukemia (MONDO:0017893)`，是 Monarch 实际提供的层级，不手工改写为 AML 直连。
-6. 中文覆盖：种子疾病中文名 8/115；表型中文名 61/61；非种子疾病无官方中文名时字段留空，不臆造译名。
-7. 验收问题 11（造血干细胞移植与再障）在当前图中无 `Treatment` 节点，无法检索，属 V1 已知缺口，已在 README「已知限制」中标注，不用文档库或其他来源伪造图谱边。
+## 六、验收查询实测
 
-## 8. 示例 Cypher
+查询语句见 `cypher/acceptance_queries.cypher`。以下为当前基线实测值：
 
-见 `cypher/acceptance_queries.cypher`：覆盖任务指引第十八章的问题 1–15，另加规模核验、边溯源抽查、孤立节点检查。
+| 问题 | 结果 |
+|---|---:|
+| AML 相关基因（`MONDO:0018874`，ASSOCIATED_WITH） | 11,438 |
+| AML 相关药物（TREATS） | 587 |
+| AML 直接表型（HAS_PHENOTYPE） | 2 |
+| APL 相关基因（`MONDO:0012883`） | 2,001 |
+| APL 相关药物 | 31 |
+| APL 直接表型 | 38 |
+| ALL 相关基因（`MONDO:0004967`） | 7,752 |
+| ALL 相关药物 | 306 |
+| ALL 直接表型 | 11 |
+| CML 相关基因（`MONDO:0011996`） | 4,449 |
+| CML 相关药物 | 179 |
+| CML 直接表型 | 17 |
+| CLL 相关基因（`MONDO:0004948`） | 5,148 |
+| CLL 相关药物 | 345 |
+| CLL 直接表型 | 10 |
+| 再障相关基因（`MONDO:0015909`） | 4,241 |
+| 再障相关药物 | 62 |
+| 再障直接表型 | 2 |
+| 重型再障相关基因（`EFO:0006927`） | 103 |
+| 重型再障相关药物 | 17 |
+| PML / RARA 与 APL 的 ASSOCIATED_WITH | 2 条 |
+| FLT3 与 AML 的 ASSOCIATED_WITH | 1 条 |
+| 环孢素 TREATS 再障 | 1 条 |
+| 伊马替尼 TREATS CML | 2 条 |
+| 再障关联基因触达的免疫类 BP | 117 个 |
+| 血小板减少（HP:0001873）关联的种子疾病 | 4 个（APL/ALL/CML/CLL） |
+| AML–药物–靶点完整路径 | 1,791 条 |
+| 同名/中文名/缩写 “AML” 命中疾病 | 55 个 |
+| 孤立节点 | 0 |
+
+说明：`HAS_PHENOTYPE` 只统计 Disease → Phenotype 的直接边；Gene/Variant/Genotype → Phenotype 不在白名单，已进入 staging。
+
+## 七、与任务指引的差异
+
+| 项 | 任务指引 | V1 实现 | 原因 |
+|---|---|---|---|
+| 节点标签 | 建议 Disease/Gene/Variant/Phenotype/Drug/Pathway/Protein 等 | 7 类，未建 Protein | 实测无 Protein → Pathway 边，建了会成为孤立节点 |
+| 治疗方案 | 建议保留治疗关系 | 仅 `TREATS` 药物边；HSCT 等治疗条目在 staging | 白名单未定义 Treatment 节点/关系 |
+| Variant → Disease | 未列入白名单 | 320 条暂存 | 白名单只有 Variant → Gene（AFFECTS） |
+| Genotype / Case | 禁止患者数据 | 丢弃或暂存 | Genotype 非 V1 节点类型；Case 违反患者数据约束 |
+| Disease → Disease | 建议 RELATED_TO | 仅 SUBTYPE_OF，RELATED_TO 关闭 | `related_to` 语义混杂，无法逐条证明 |
+| 药物 ID | 建议统一 ChEMBL | 全部 CHEMBL | Monarch 的 CHEBI 药物无稳定映射，进 staging |

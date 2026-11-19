@@ -1,11 +1,11 @@
 // 血液病知识图谱 V1 — 阶段 3 示例 Cypher（任务指引 十一「查询模板」/ 十八「验收问题集」可执行版）
-// 数据基线（阶段 2 冻结）：节点 125,759；关系 280,999
+// 数据基线（阶段 2 冻结）：节点 128,783；关系 284,023
 // 注释里的“实测”数字来自对 data/processed/*.csv 的只读统计；导入后执行应一致。
 // 用法：Neo4j Browser（http://127.0.0.1:7474）或 docker exec -it hematology-neo4j cypher-shell -u neo4j -p <密码>
 
 // ---------- 0. 规模与类型分布核验 ----------
-MATCH (n:Entity) RETURN count(n) AS nodes;              // 期望 125759
-MATCH ()-[r]->() RETURN count(r) AS edges;              // 期望 280999
+MATCH (n:Entity) RETURN count(n) AS nodes;              // 期望 128783
+MATCH ()-[r]->() RETURN count(r) AS edges;              // 期望 284023
 MATCH (n:Entity) UNWIND labels(n) AS lab
 RETURN lab, count(*) AS c ORDER BY c DESC;
 
