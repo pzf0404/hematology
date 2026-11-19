@@ -97,11 +97,12 @@ pytest tests/test_etl.py -q
 ## 五、Docker / Neo4j（阶段 3）
 
 ```powershell
-Copy-Item .env.example .env      # 设置强密码（≥12 位、不含 $）；不要带 <>（Compose 会插值）
-docker network inspect ai-network
-docker network create ai-network # 不存在时创建
+Copy-Item .env.example .env      # 必须在首次启动前改成强密码（≥12 位、不含 $）；启动后再改 .env 不会更新 Neo4j 密码
+notepad .env
+docker network create ai-network # 已存在会提示 already exists，可忽略
 docker compose up -d hematology-neo4j
 docker ps --filter name=hematology-neo4j
+# 首次启动初始化需 1–2 分钟；下面命令返回 1 后再执行导入
 docker exec hematology-neo4j cypher-shell -u neo4j -p <密码> "RETURN 1;"
 python -m pip install "neo4j>=5,<7"
 $env:NEO4J_PASSWORD="<与 .env 相同的密码>"
@@ -213,8 +214,9 @@ Remove-Item -Recurse -Force neo4j\data.pre-restore-<时间戳>
 ```powershell
 git clone https://github.com/pzf0404/hematology.git hematology-kg
 cd hematology-kg
-Copy-Item .env.example .env           # 设置强密码（≥12 位、不含 $）；不要带 <>
-docker network inspect ai-network     # 不存在则 docker network create ai-network
+Copy-Item .env.example .env           # 必须在首次启动前改成强密码（≥12 位、不含 $）；启动后再改 .env 不会更新 Neo4j 密码
+notepad .env
+docker network create ai-network      # 已存在会提示 already exists，可忽略
 python -m pip install PyYAML "neo4j>=5,<7" pytest httpx -r api\requirements.txt
 
 # 1) 数据构建（阶段 2）：raw -> staging -> processed
@@ -226,6 +228,8 @@ python -m etl.validate                # 退出码 0，28 项 PASS
 # 2) Neo4j（阶段 3）
 docker compose up -d hematology-neo4j
 $env:NEO4J_PASSWORD = ((Select-String -Path .env -Pattern '^NEO4J_PASSWORD=').Line -replace '^NEO4J_PASSWORD=','').Trim()
+# 首次启动初始化需 1–2 分钟；下面命令返回 1 后再导入
+docker exec hematology-neo4j cypher-shell -u neo4j -p $env:NEO4J_PASSWORD "RETURN 1;"
 python -m etl.load_neo4j              # 建约束 -> 导入 -> 核验
 
 # 3) API（阶段 4）
