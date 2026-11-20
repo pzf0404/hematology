@@ -223,12 +223,15 @@ Remove-Item -Recurse -Force neo4j\data.pre-restore-YYYYMMDD-HHMMSS
 git clone https://github.com/pzf0404/hematology.git hematology-kg
 cd hematology-kg
 
-# 方式二：使用交付压缩包（包内已含 .git，从本地路径克隆，与方式一命令形式一致）
+# 方式二：使用交付压缩包（包内已含 .git 与 data/raw）
 # 压缩包名与解压位置按实际替换
 Expand-Archive .\hematology-kg.zip -DestinationPath .
-git clone .\hematology-kg hematology-kg-work
-cd hematology-kg-work
-# 若只需一份代码，也可跳过 clone，直接 cd .\hematology-kg
+# 推荐：解压目录本身就是完整仓库，直接进入即可，raw 已就位
+cd .\hematology-kg
+# 若坚持走 clone 形式：clone 只复制已跟踪文件，需再补拷 raw（约 471 MB）
+# git clone .\hematology-kg hematology-kg-work
+# Copy-Item .\hematology-kg\data\raw -Destination .\hematology-kg-work\data -Recurse
+# cd .\hematology-kg-work
 
 Copy-Item .env.example .env           # 首次启动前修改；密码仅用字母、数字、_、-，避免 $ 和 #（Compose 会当作变量/注释）
 notepad .env
@@ -283,9 +286,9 @@ docker exec $ragflowContainer curl -s http://hematology-kg-api:8000/health
 # 详细步骤见 docs/04_ragflow_integration.md 第五节
 ```
 
-- `data/raw` 体积大且不入库（见 `.gitignore`）。新机器可执行 `python -m etl.download`，或从交付介质复制 raw 目录与 `manifest.json` 后跳过下载。
-- Monarch 归档 368 MB，直连较慢；复制方式必须校验 SHA256 与 `data/raw/manifest.json` 一致。
-- 指南原文同样不在仓库中，RAGFlow 重建前必须先运行 `python -m etl.fetch_guidelines`。共 10 个文件：3 个 `.doc`、1 个 `.docx`、6 个 `.pdf`；3 个 `.doc` 需另存为 `.docx` 后上传，清单见 `data/raw/guidelines/sources.json`。
+- `data/raw` 体积大且不入库（见 `.gitignore`）。交付压缩包内已包含 `data/raw`（只含当前版本 Monarch 2026-11-11，不含旧归档）；GitHub 方式则需执行 `python -m etl.download`，或从其他介质复制 raw 目录与 `manifest.json` 后跳过下载。
+- Monarch 归档 351.3 MB（368,326,109 B），直连较慢；复制方式必须校验 SHA256 与 `data/raw/manifest.json` 一致。
+- 指南原文不入 Git；交付压缩包内已含 `data/raw/guidelines`（3 个 `.doc`、1 个 `.docx`、6 个 `.pdf`，另有 `converted/` 下 4 个转换后的 `.docx`）。GitHub 方式需先运行 `python -m etl.fetch_guidelines`，3 个 `.doc` 需另存为 `.docx` 后上传，清单见 `data/raw/guidelines/sources.json`。
 - 若端口被占用，先停止旧栈，或临时调整 `docker-compose.yml` 的宿主端口映射。
 
 ### 9.2 交接核对（约 10 分钟）
