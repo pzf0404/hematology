@@ -218,14 +218,17 @@ Remove-Item -Recurse -Force neo4j\data.pre-restore-YYYYMMDD-HHMMSS
 ### 9.1 从零部署（按顺序执行）
 
 ```powershell
-# 获取代码（二选一，最终都要停在项目根目录 hematology-kg）
+# 获取代码（二选一，最终都要停在项目根目录）
 # 方式一：从 GitHub 克隆
 git clone https://github.com/pzf0404/hematology.git hematology-kg
 cd hematology-kg
 
-# 方式二：使用交付压缩包（解压后直接进入目录即可，无需再 clone；路径按实际解压位置替换）
-# Expand-Archive .\hematology-kg.zip -DestinationPath .
-# cd .\hematology-kg
+# 方式二：使用交付压缩包（包内已含 .git，从本地路径克隆，与方式一命令形式一致）
+# 压缩包名与解压位置按实际替换
+Expand-Archive .\hematology-kg.zip -DestinationPath .
+git clone .\hematology-kg hematology-kg-work
+cd hematology-kg-work
+# 若只需一份代码，也可跳过 clone，直接 cd .\hematology-kg
 
 Copy-Item .env.example .env           # 首次启动前修改；密码仅用字母、数字、_、-，避免 $ 和 #（Compose 会当作变量/注释）
 notepad .env
