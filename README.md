@@ -76,7 +76,7 @@ hematology-kg/
 - Docker Desktop + Docker Compose
 - 端口：`7474`、`7687`、`18080` 空闲（RAGFlow 另需其自身端口）
 - 磁盘：原始数据约 480 MB、Neo4j 数据约 1 GB、镜像约 1.2 GB
-- 网络：可访问 GitHub、Docker Hub、monarchinitiative.org、Open Targets API 与 RAGFlow 模型服务
+- 网络：可访问 Docker Hub、monarchinitiative.org、Open Targets API 与 RAGFlow 模型服务；若采用 GitHub 方式获取代码，还需能访问 github.com
 
 ## 四、数据构建（阶段 2）
 
@@ -218,8 +218,15 @@ Remove-Item -Recurse -Force neo4j\data.pre-restore-YYYYMMDD-HHMMSS
 ### 9.1 从零部署（按顺序执行）
 
 ```powershell
+# 获取代码（二选一，最终都要停在项目根目录 hematology-kg）
+# 方式一：从 GitHub 克隆
 git clone https://github.com/pzf0404/hematology.git hematology-kg
 cd hematology-kg
+
+# 方式二：使用交付压缩包（解压后直接进入目录即可，无需再 clone；路径按实际解压位置替换）
+# Expand-Archive .\hematology-kg.zip -DestinationPath .
+# cd .\hematology-kg
+
 Copy-Item .env.example .env           # 首次启动前修改；密码仅用字母、数字、_、-，避免 $ 和 #（Compose 会当作变量/注释）
 notepad .env
 docker network create ai-network      # 已存在会提示 already exists，可忽略
