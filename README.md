@@ -18,7 +18,7 @@
 | [DisMech](https://github.com/monarch-initiative/dismech) | `38c23e10b0285becf70a0416fdb267698dfd20fe` | 精选机制与表型 | BSD-3-Clause（仓库）/ AI 辅助整理内容 |
 | [Open Targets](https://api.platform.opentargets.org/api/v4/graphql) | 26.09 | 药物、靶点、药物—疾病证据 | 平台数据 CC0；上游逐源条款见许可审查 |
 
-- 逐文件 URL、下载时间、版本、SHA256、大小与处理脚本版本：`data/raw/manifest.json`
+- 数据源版本与下载时间、逐文件 URL / SHA256 / 大小 / 处理脚本版本：`data/raw/manifest.json`
 - 每个数据源的许可结论、入图数据集核对与残余风险：`docs/02_license_review.md`
 - 数据源评估表（可下载性、更新频率、结构、覆盖度、推荐用途）：`docs/01_source_evaluation.xlsx`
 - 本次构建的节点、边、疾病数与数据源版本：`data/processed/build_manifest.json`
@@ -262,8 +262,11 @@ python -m etl.fetch_guidelines        # 下载 10 个指南文件到 data/raw/gu
 # 文件名对照 data/raw/guidelines/sources.json 的 upload_filename
 # 在 RAGFlow 中创建知识库并上传 6 个 PDF + 4 个 DOCX -> 解析
 # 导入 docs/s5/dsl_snapshot.json -> 在 Retrieval 重新选择知识库、在 3 个 Agent 节点重新选择模型
-# RAGFlow 容器需接入 ai-network，并能访问 API（自动取第一个含 ragflow 的容器）
-$ragflowContainer = (docker ps --format "{{.Names}}" | Select-String -Pattern "ragflow" | Select-Object -First 1).Line
+# RAGFlow 容器需接入 ai-network，并能访问 API（按镜像筛出 ragflow-server，避免误取 mysql/es/redis）
+$ragflowContainer = (docker ps --format "{{.Names}}`t{{.Image}}" |
+  Select-String "infiniflow/ragflow" |
+  ForEach-Object { ($_.Line -split "`t")[0] } |
+  Select-Object -First 1)
 docker network connect ai-network $ragflowContainer   # 已连接会报错，可忽略
 docker exec $ragflowContainer curl -s http://hematology-kg-api:8000/health
 # 若 Invoke 报主机不可达，在 RAGFlow 的 .env 中设置 ALLOW_ANY_HOST=1 并重启 RAGFlow

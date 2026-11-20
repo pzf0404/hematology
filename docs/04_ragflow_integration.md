@@ -69,16 +69,19 @@ UI 保存的 `llm_id` 是 `tenant_model.id`（作者环境为 `1a467ebc0df742e59
 - 本仓库的 Neo4j 与 API 已启动，且 RAGFlow 容器能访问 `http://hematology-kg-api:8000/health`
 - 两个栈都在 `ai-network`；RAGFlow 允许访问该主机名（作者环境设置 `ALLOW_ANY_HOST=1`）
 
-网络自查与修复（自动取第一个含 ragflow 的容器）：
+网络自查与修复（按镜像筛出 RAGFlow 主容器，避免误取 mysql / es / redis）：
 
 ```powershell
 docker network inspect ai-network --format "{{range .Containers}}{{.Name}} {{end}}"
-$ragflowContainer = (docker ps --format "{{.Names}}" | Select-String -Pattern "ragflow" | Select-Object -First 1).Line
+$ragflowContainer = (docker ps --format "{{.Names}}`t{{.Image}}" |
+  Select-String "infiniflow/ragflow" |
+  ForEach-Object { ($_.Line -split "`t")[0] } |
+  Select-Object -First 1)
 docker network connect ai-network $ragflowContainer   # 已连接会报错，可忽略
 docker exec $ragflowContainer curl -s http://hematology-kg-api:8000/health
 ```
 
-若返回主机不可达，在 RAGFlow 的 `.env` 中设置 `ALLOW_ANY_HOST=1`，重启 RAGFlow 后重试。
+若返回主机不可达，在 RAGFlow 安装目录的 `docker/.env` 中追加 `ALLOW_ANY_HOST=1`，然后在该目录执行 `docker compose -f docker/docker-compose.yml up -d` 使环境变量生效（或 `docker restart $ragflowContainer`），再重试上面的 `docker exec` 命令。
 
 ### 5.1 准备指南文档
 
